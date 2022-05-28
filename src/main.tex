@@ -6,12 +6,16 @@
 \documentclass[12pt]{article}
 
 % Zitieren
-
-\usepackage{biblatex-chicago}
-\addbibresource{main.bib}
+%\usepackage{biblatex-chicago}
+\usepackage[backend=biber]{biblatex-chicago}
+\addbibresource{main2.bib}
+\usepackage{biblatex}
+\interfootnotelinepenalty=10000
 % Packages
 
 \usepackage[ngerman]{babel}
+
+
 \usepackage{color}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -21,7 +25,9 @@
 \usepackage[onehalfspacing]{setspace}
 
 \usepackage[pdftex,pdfpagelabels,bookmarks,hyperindex,hyperfigures]{hyperref}
-\usepackage{biblatex}
+
+\newcommand{\citicationneeded}{\textsuperscript{\color{red} [?]}}
+
 
 \begin{titlepage}
 
@@ -39,28 +45,52 @@
 \begin{document}
 
     \tableofcontents
-
+    \pagebreak
 
     \section{Über die Probleme der Stromversorgung}
-        Sowohl der Klimawandel als auch der internationale Konflikt zwischen der Ukraine und Russland
-        zeigen die Probleme der deutschen Stromversorgung auf.
-        Deutschlands Energieerzeugung erfolgt zu 52,1\% aus konventionellen oder fossilen Energiequellen, die der Umwelt
-        schaden.
-        Die Abhängigkeit von konventionellen Energien treten in der Regel wegen Mangel an erneuerbaren Energien auf.
-        Weitere Probleme sind der Import von Strom bei Produktionsmangel und Export von Strom bei Produktionsüberschuss.
-        %Zudem reicht die interne Energieproduktion manchmal, besonders bei windstillen Nächten, nicht aus, um den
-        %Energieverbrauch abzudecken, wodurch Strom importiert werden muss.
-        %Umgekehrt kommt es bei hoher Sonnen- und Windstärke oft zu Energieüberschuss.
-        %Da es nicht genügend Kapazitäten gibt, um diese überschüssige Energie zu speichern, muss sie exportiert werden.
+    Sowohl der Klimawandel als auch der internationale Konflikt zwischen der Ukraine und Russland
+    zeigen die Probleme der deutschen Stromversorgung auf.
+    Deutschlands Energieerzeugung erfolgt zu 52,1\% aus konventionellen oder fossilen Energiequellen, die der Umwelt
+    schaden.
+    Die Abhängigkeit von konventionellen Energien treten in der Regel wegen Mangel an erneuerbaren Energien auf.
+    Weitere Probleme sind der Import von Strom bei Produktionsmangel und Export von Strom bei Produktionsüberschuss.
+    %Zudem reicht die interne Energieproduktion manchmal, besonders bei windstillen Nächten, nicht aus, um den
+    %Energieverbrauch abzudecken, wodurch Strom importiert werden muss.
+    %Umgekehrt kommt es bei hoher Sonnen- und Windstärke oft zu Energieüberschuss.
+    %Da es nicht genügend Kapazitäten gibt, um diese überschüssige Energie zu speichern, muss sie exportiert werden.
 
-        \subsection{Abhängigkeit von russischem Erdgas}
-            Russland führt derzeit einen grausamen und unnötigen Überfall auf die Ukraine aus.
-            Um Russland zu schwächen haben viele Staaten Sanktionen verhängt, welche das Land unter anderem
-            Wirtschaftlich
-            schwächen sollen.\footcite{sanktion}
-            Dennoch bezieht Deutschland weiterhin hohe Mengen and Öl und Erdgas aus Russland, da es von diesen
-            Energieträgern abhängig ist, und unterstützt damit indirekt den Krieg.
-            Die Abhängigkeit von Erdgas ist ein wichtiger Faktor, der die Energieversorgung auf Deutschland
+    \subsection{Abhängigkeit von russischem Gas und Öl}
+    Russland führt derzeit einen grausamen und unnötigen Überfall auf die Ukraine aus.
+    Um Russland zu schwächen haben viele Staaten Sanktionen verhängt, welche das Land unter anderem
+    Wirtschaftlich schwächen sollen.\footcite{SanktionenGegenRussland2022}
+    Dennoch bezieht Deutschland weiterhin hohe Mengen and Öl und Erdgas aus Russland, da es von diesen und
+    unterstützt damit indirekt den Krieg.
+
+    Im vergangenen Jahr bezog Deutschland 55\% des Erdgas aus Russland, gegen Ende dieses Jahres will man dies auf
+    30\% verringern.\footcite{wdraktuellFAQWasGasLieferstopp} Dennoch wird das nicht reichen um Russland merkbar zu
+    Schwächen, denn durch die vom Krieg verursachten hohen Gaspreise wird Deutschland nach Schätzungen der
+    Umweltorganisation Greenpeace Rekordsummen an Russland für Erdgas und Öl und zahlen.\footcite{balserOlUndGas}
+
+    Bei direkter Betrachtung des Anteils von Erdgas bei der Stromerzeugung von etwa 10\% scheint Erdgas zunächst
+    kein großer Faktor in der elektrischen Stromversorgung zu sein.\footcite{SMARDHoherEEAnteil, EnergieWofurErdgas}
+    Betrachtet man jedoch, dass Erdgas über die Hälfte des in Deutschland verbrauchten
+    Energie ausmacht und hauptsächlich zum Heizen verwendet wird\footcite{Anwendungsbereiche, EnergieWofurErdgas},
+    während nur zu 5,6\% mit elektrischer Energie geheizt wird, erkennt man schnell, dass Deutschland sehr von diesen
+    Fossilen Brennstoffen abhängig ist.
+    Dies liegt daran, dass das Deutsche Stromnetz nicht die nötigen Kapazitäten hat, um diese zu
+    ersetzen.\footcite{EnergieWofurErdgas}
+
+    \subsection{Abhängigkeit von fossilen Brennstoffen}
+
+    \subsection{Produktionsüber- und Unterschuss}
+
+    \section{Bidirektionales Laden als Lösung}
+
+    \subsection{Vehicle to Home}
+
+    \subsection{Vehicle to Grid \& Einspeisung}
+
+    \section{Experiment: 12V Batterie}
 
 \end{document}
 
