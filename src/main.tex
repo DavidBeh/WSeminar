@@ -20,6 +20,7 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{pgf-pie}
+\usepackage{pgfplots}
 
 
 \usepackage[a4paper,margin=3cm]{geometry}
@@ -28,6 +29,7 @@
 \usepackage[pdftex,pdfpagelabels,bookmarks,hyperindex,hyperfigures]{hyperref}
 \usepackage{tikz}
 \usepackage{siunitx}
+\usepackage{booktabs}
 \sisetup{locale = DE}
 
 
@@ -82,32 +84,55 @@
 
     Der Anteil an konventionellen Energieträgern an der Stromerzeugung lag im 1.\ Quartal 2022 bei 52,1\%.
     Die verwendung solcher fossiler Brennstoffe, wie Braunkohle oder Erdgas, hat durch die Erzeugung von
-    Treibhausgasen einen Schädlichen einfluss auf den Klimawandel.\footcite{wilkeErneuerbareUndKonventionelle2013}
+    Treibhausgasen einen schädlichen Einfluss auf den Klimawandel.\footcite{wilkeErneuerbareUndKonventionelle2013}
 
     \subsection{Energieträger und ihre Umweltauswirkungen}
     Der Energieverbrauch in Deutschland wird durch unterschiedliche Energieträger gedeckt.
     Diese Energieträger unterscheiden sich unter anderem in ihrem Umwelteinfluss.
 
-    Das folgende Diagram unterteilt den geschätzten Primärenergieverbrauch des Jahres 2021 von
-    \qty{12.193}{T\joule}
+    Das folgende Diagram unterteilt den Primärenergieverbrauch des Jahres 2020 von
+    \qty{11.895}{P\joule}
     in die unterschiedlichen Energieträger.
     Der Primärenergieverbrauch bezeichnet den Energiegehalt der verwendeten Energieträger und
     hängt unter anderem vom Wirkungsgrad ab.
 
-    \begin{tikzpicture}
-        \pie[text=pin]{
-            32/Mineralöl,
-            27/Gase,
-            9/Steinkohle,
-            9/Braunkohle,
-            6/Kernenergien,
-            16/Erneuerbare Energien,
-            1/Sonstige Energieträger}
-    \end{tikzpicture}
-    \footcite{wilkeEnergieverbrauchNachEnergietraegern2013}
+    \begin{figure}[!h]
+        \begin{tikzpicture}
+            \pie[text=legend, sum=auto, size=2]{
+                4087/Mineralöl,
+                3144/Gase,
+                896/Steinkohle,
+                958/Braunkohle,
+                702/Kernenergien,
+                1972/Erneuerbare Energien,
+                136/Sonstige Energieträger}
+        \end{tikzpicture}\caption{Primärenergieverbrauch nach Energieträger 2020 in
+        \unit{PJ}]\footcite{Energieflussbild2020PJLang}}
+    \end{figure}
+
+    Davon werden etwa \qty{1257}{PJ} Gas und \qty{807}{PJ} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
+    Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
+    Durch Fernwärme werden ungefähr \qty{154}{PJ} Gas und \qty{97}{PJ} Steinkohle verbraucht.\footcite{WieKannTransformation}
+    Die Beheizung im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ} geschätzt werden.\footcite{Industrie}
+
+    Die Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurde aus \qty{344}{PJ} Braunkohle, \qty{181}{PJ} Gas
+    und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
 
 
-
+    \begin{table}[!h]
+        \centering
+        \begin{tabular}{lllrlll}
+            \toprule
+            \textbf{Energieträger} & \textbf{Gas} & \textbf{Öl} & \textbf{Steinkohle} & \textbf{Braunkohle} \\
+            \midrule
+            Heizen                 & 1651         & 807         & 97                  &                     \\
+            Verkehr                &              & 2082        &                     &                     \\
+            Stromerzeugung         & 181          &             & 181                 & 344                 \\
+            \bottomrule
+        \end{tabular}
+        \caption{Einige Anwendungen konventioneller Energieträger}
+        \label{tab:}
+    \end{table}
 
     \subsection{Mangelnde Kapazitäten des Stromnetz um Heizträger zu ersetzen}
     Bei direkter Betrachtung des Anteils von Erdgas bei der Stromerzeugung von etwa 10\% scheint Erdgas zunächst
