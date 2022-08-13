@@ -19,12 +19,16 @@
 %\usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
+\usepackage{pgf-pie}
+
 
 \usepackage[a4paper,margin=3cm]{geometry}
 \usepackage[onehalfspacing]{setspace}
 
 \usepackage[pdftex,pdfpagelabels,bookmarks,hyperindex,hyperfigures]{hyperref}
-
+\usepackage{tikz}
+\usepackage{siunitx}
+\sisetup{locale = DE}
 
 
 \begin{titlepage}
@@ -47,6 +51,9 @@
 
 
     \section{Nutzen des Bidirektionalen Ladens für das deutsche Stromnetz}
+
+
+
     Sowohl der Klimawandel als auch der internationale Konflikt zwischen der Ukraine und Russland
     zeigen die Probleme der deutschen Stromversorgung auf.
     Deutschlands Energieerzeugung erfolgt zu 52,1\% aus konventionellen oder fossilen Energiequellen, die der Umwelt
@@ -71,14 +78,37 @@
     Umweltorganisation Greenpeace Rekordsummen an Russland für Erdgas und Öl und zahlen und dadurch den russischen
     Krieg finanzieren.\footcite{balserOlUndGas}
 
-
-
     \subsection{Abhängigkeit von fossilen Brennstoffen und deren Einfluss auf den Klimawandel}
 
     Der Anteil an konventionellen Energieträgern an der Stromerzeugung lag im 1.\ Quartal 2022 bei 52,1\%.
     Die verwendung solcher fossiler Brennstoffe, wie Braunkohle oder Erdgas, hat durch die Erzeugung von
     Treibhausgasen einen Schädlichen einfluss auf den Klimawandel.\footcite{wilkeErneuerbareUndKonventionelle2013}
-    
+
+    \subsection{Energieträger und ihre Umweltauswirkungen}
+    Der Energieverbrauch in Deutschland wird durch unterschiedliche Energieträger gedeckt.
+    Diese Energieträger unterscheiden sich unter anderem in ihrem Umwelteinfluss.
+
+    Das folgende Diagram unterteilt den geschätzten Primärenergieverbrauch des Jahres 2021 von
+    \qty{12.193}{T\joule}
+    in die unterschiedlichen Energieträger.
+    Der Primärenergieverbrauch bezeichnet den Energiegehalt der verwendeten Energieträger und
+    hängt unter anderem vom Wirkungsgrad ab.
+
+    \begin{tikzpicture}
+        \pie[text=pin]{
+            32/Mineralöl,
+            27/Gase,
+            9/Steinkohle,
+            9/Braunkohle,
+            6/Kernenergien,
+            16/Erneuerbare Energien,
+            1/Sonstige Energieträger}
+    \end{tikzpicture}
+    \footcite{wilkeEnergieverbrauchNachEnergietraegern2013}
+
+
+
+
     \subsection{Mangelnde Kapazitäten des Stromnetz um Heizträger zu ersetzen}
     Bei direkter Betrachtung des Anteils von Erdgas bei der Stromerzeugung von etwa 10\% scheint Erdgas zunächst
     kein großer Faktor in der elektrischen Stromversorgung zu sein.\footcite{SMARDHoherEEAnteil, EnergieWofurErdgas}
@@ -88,7 +118,7 @@
     fossilen Brennstoffen (aus Russland) abhängig ist.
     Dies liegt daran, dass das Deutsche Stromnetz nicht die nötigen Kapazitäten hat, um diese zu
     ersetzen.\footcite{EnergieWofurErdgas}
-    
+
     \subsection{Unzuverlässigkeit der Erneuerbaren}
     Dass die erweiterte Nutzung der Erneuerbaren Energien unabdingbar für die Lösung des deutschen Energieproblemes
     ist, sollte nun belegt sein. Allerdings sind die darunter relevanten Energiequellen, Wind und Sonne, nicht
@@ -101,6 +131,7 @@
     Speicherkapazitäten ohne Zweifel zu einem Produktionsüberschuss kommen.\footcite{wirthAktuelleFaktenZur}
     Der Ausbau wäre also bis zu einem bestimmten Punkt nicht mehr sinnvoll, da es an Speicherkapazitäten fehlt.
     Dieses Problem könnte durch Bidirektionales Laden gelöst werden.
+
 
     \section{Bidirektionales Laden als Lösung}
 
