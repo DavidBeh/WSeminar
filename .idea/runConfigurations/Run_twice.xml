@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run twice" type="CompoundRunConfigurationType">
+    <toRun name="main" type="LATEX_RUN_CONFIGURATION" />
+    <method v="2" />
+  </configuration>
+</component>
