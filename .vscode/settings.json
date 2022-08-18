@@ -1,0 +1,4 @@
+{
+    "latex-workshop.intellisense.citation.backend": "biblatex",
+    "latex-workshop.latex.outDir": "build"
+}

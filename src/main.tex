@@ -22,6 +22,8 @@
 \usepackage{graphicx}
 \usepackage{pgf-pie}
 \usepackage{pgfplots}
+\usepackage[section]{placeins}
+
 
 
 \usepackage[a4paper,margin=3cm]{geometry}
@@ -32,8 +34,6 @@
 \usepackage{siunitx}
 \usepackage{booktabs}
 \sisetup{locale = DE}
-
-
 
 
 
@@ -80,7 +80,7 @@ Im vergangenen Jahr bezog Deutschland 55\% des Erdgas aus Russland, gegen Ende d
 30\% verringern.\footcite{wdraktuellFAQWasGasLieferstopp} Dennoch wird das nicht reichen um Russland merkbar zu
 Schwächen, denn durch die vom Krieg verursachten hohen Gaspreise wird Deutschland nach Schätzungen der
 Umweltorganisation Greenpeace Rekordsummen an Russland für Erdgas und Öl und zahlen und dadurch den russischen
-Krieg finanzieren.\footcite{balserOlUndGas}
+Krieg finanzieren.\footcite{balserOelUndGas}
 
 \subsection{Abhängigkeit von fossilen Brennstoffen und deren Einfluss auf den Klimawandel}
 
@@ -89,10 +89,13 @@ Die verwendung solcher fossiler Brennstoffe, wie Braunkohle oder Erdgas, hat dur
 Treibhausgasen einen schädlichen Einfluss auf den Klimawandel.\footcite{wilkeErneuerbareUndKonventionelle2013}
 
 \subsection{Energieträger und ihre Umweltauswirkungen}
+
+\subsubsection{Nutzung von Primärenergieträgern}
+
 Der Energieverbrauch in Deutschland wird durch unterschiedliche Energieträger gedeckt.
 Diese Energieträger unterscheiden sich unter anderem in ihrem Umwelteinfluss.
 
-Das folgende Diagram unterteilt den Primärenergieverbrauch des Jahres 2020 von
+Das folgende Diagramm unterteilt den Primärenergieverbrauch des Jahres 2020 von
 \qty{11.895}{P\joule}
 in die unterschiedlichen Energieträger.
 Der Primärenergieverbrauch bezeichnet den Energiegehalt der verwendeten Energieträger und
@@ -100,9 +103,9 @@ hängt unter anderem vom Wirkungsgrad ab.
 
 \begin{figure}[!h]
     \begin{tikzpicture}
-        \pie[text=legend, sum=auto, radius=2]{
-            4087/Mineralöl,
-            3144/Gase,
+        \pie[text=legend, sum=auto, radius=2, color={blue, yellow, gray, brown, lightgray, green, teal}]{
+            4087/Öl,
+            3144/Gas,
             896/Steinkohle,
             958/Braunkohle,
             702/Kernenergien,
@@ -115,12 +118,10 @@ hängt unter anderem vom Wirkungsgrad ab.
 Davon werden etwa \qty{1257}{PJ} Gas und \qty{807}{PJ} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
 Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
 Durch Fernwärme werden ungefähr \qty{154}{PJ} Gas und \qty{97}{PJ} Steinkohle verbraucht.\footcite{WieKannTransformation}
-Die Beheizung im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ} geschätzt werden.\footcite{Industrie}
+Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ} geschätzt werden.\footcite{Industrie}
 
-Die Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurde aus \qty{344}{PJ} Braunkohle, \qty{181}{PJ} Gas
+Der Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurde aus \qty{344}{PJ} Braunkohle, \qty{181}{PJ} Gas
 und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
-
-
 
 \begin{table}[!htbp]
     \centering
@@ -136,10 +137,52 @@ und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
     \end{tabular}
     \caption{(Zusammenfassung) Nutzung einiger Energieträger}
 \end{table}
+
+\subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
+
+Diese in der Tabelle aufgelisteten Energiemengen entsprechen etwa der Hälfte
+der durch konventionelle Energieträger erzeugten Energien.
+Die Emissionen von Treibhausgasen, die durch den Verbrauch von konventionellen Energieträgern
+entstehen, sind mitunter eine der größten Antreiber des Klimawandels.
+Um den Klimawandel zu stoppen, ist es unabdingbar, Emissionen zu minimieren.
+Eine Möglichkeit dies zu realisieren, neben des Reduzieren des Verbrauchs,
+ist das Wechseln auf emissionsärmere, und damit klimafreundlichere,
+Energieproduktionsmethoden.
+
+Als Alternative zum Heizen mit fossilen Brennstoffen bietet sich
+das Heizen mit Wärmepumpen an, welche etwa \unit{\frac{2}{3}} der
+Energie aus der Umgebung entziehen.
+
+Als Alternative zum Verbrauch von fossilen Kraftstoffen im Verkehr bietet
+sich das Fahren von Elektroautos an. Der Kraftstoffverbrauch macht einen
+großen Teil des Gesamtenergieverbrauchs aus, und wirkt sich damit sehr
+negativ auf den Klimawandel aus.
+
+Damit beide oben genannten Lösungsansätze umgesetzt werden können, müssen
+höhere Stromkapazitäten vorhanden sein. Diese müssten außerdem durch erneuerbare
+Energien abgedeckt werden. Auch die bereits von konventionellen Energieträgern
+abgedeckten Stromkapazitäten werden durch regenerative Abgedeckt werden müssen.
+
+\begin{figure}[]
+    \begin{tikzpicture}
+        \pie[text=legend, sum=auto, color={yellow!60, blue!60, brown!60, red, green, teal}, radius=2]{
+            2555/Heizen (fossil\, zu ers.),
+            2082/Kraftstoff (fossi\, zu ers.),
+            706/Stromerzeugung (fossil\, zu ers.),
+            4580/Sonstige fossilen,
+            1972/Erneuerbare,
+            136/Sonstige
+        }
+    \end{tikzpicture}
+    \caption{Anteile der zu mit erneuerbaren zu ersetzenden Energieträger in \unit{PJ}}
+\end{figure}
+
 \subsubsection{Berechnung der Emissionen}
 
+
+
 Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
-Der Emissionsfaktor gibt die Menge der Treibhausgasemissionen (CO\textsubscript{2} Equivalent) an,
+Der Emissionsfaktor gibt die Menge der Treibhausgasemissionen (CO\textsubscript{2} Äquivalent) an,
 die bei der Produktion von Energie verbraucht wird.
 Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr hoch.
 
@@ -160,15 +203,19 @@ Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr h
 \end{table}
 \footnotetext{\cite{quaschningSpecificCarbonDioxide}}
 
+
+
 \subsection{Mangelnde Kapazitäten des Stromnetz um Heizträger zu ersetzen}
 Bei direkter Betrachtung des Anteils von Erdgas bei der Stromerzeugung von etwa 10\% scheint Erdgas zunächst
-kein großer Faktor in der elektrischen Stromversorgung zu sein.\footcite{SMARDHoherEEAnteil, EnergieWofurErdgas}
+kein großer Faktor in der elektrischen Stromversorgung zu sein.\footcite{SMARDHoherEEAnteil,EnergieWofuerErdgas}
 Betrachtet man jedoch, dass Erdgas über die Hälfte des in Deutschland verbrauchten
-Energie ausmacht und hauptsächlich zum Heizen verwendet wird\footcite{Anwendungsbereiche, EnergieWofurErdgas},
+Energie ausmacht und hauptsächlich zum Heizen verwendet wird\footcite{Anwendungsbereiche,EnergieWofuerErdgas},
 während nur zu 5,6\% mit elektrischer Energie geheizt wird, erkennt man schnell, dass Deutschland sehr von diesen
 fossilen Brennstoffen (aus Russland) abhängig ist.
 Dies liegt daran, dass das Deutsche Stromnetz nicht die nötigen Kapazitäten hat, um diese zu
-ersetzen.\footcite{EnergieWofurErdgas}
+ersetzen.\footcite{EnergieWofuerErdgas}
+
+
 
 \subsection{Unzuverlässigkeit der Erneuerbaren}
 Dass die erweiterte Nutzung der Erneuerbaren Energien unabdingbar für die Lösung des deutschen Energieproblemes
