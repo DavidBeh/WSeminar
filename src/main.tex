@@ -3,7 +3,7 @@
 %! Date = 26.05.2022
 
 % Preamble
-\documentclass[12pt]{article}
+\documentclass[12pt, ngerman]{article}
 
 % Zitieren
 %\usepackage{biblatex-chicago}
@@ -22,14 +22,14 @@
 \usepackage{graphicx}
 \usepackage{pgf-pie}
 \usepackage{pgfplots}
-\usepackage[section]{placeins}
-
+%\usepackage[section]{placeins}
 
 
 \usepackage[a4paper,margin=3cm]{geometry}
 \usepackage[onehalfspacing]{setspace}
 
 \usepackage[pdftex,pdfpagelabels,bookmarks,hyperindex,hyperfigures]{hyperref}
+\usepackage[nameinlink]{cleveref}
 \usepackage{tikz}
 \usepackage{siunitx}
 \usepackage{booktabs}
@@ -85,7 +85,7 @@ Krieg finanzieren.\footcite{balserOelUndGas}
 \subsection{Abhängigkeit von fossilen Brennstoffen und deren Einfluss auf den Klimawandel}
 
 Der Anteil an konventionellen Energieträgern an der Stromerzeugung lag im 1.\ Quartal 2022 bei 52,1\%.
-Die verwendung solcher fossiler Brennstoffe, wie Braunkohle oder Erdgas, hat durch die Erzeugung von
+Die Verwendung solcher fossiler Brennstoffe, wie Braunkohle oder Erdgas, hat durch die Erzeugung von
 Treibhausgasen einen schädlichen Einfluss auf den Klimawandel.\footcite{wilkeErneuerbareUndKonventionelle2013}
 
 \subsection{Energieträger und ihre Umweltauswirkungen}
@@ -120,8 +120,10 @@ Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ} Öl als Brennstoff im Verk
 Durch Fernwärme werden ungefähr \qty{154}{PJ} Gas und \qty{97}{PJ} Steinkohle verbraucht.\footcite{WieKannTransformation}
 Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ} geschätzt werden.\footcite{Industrie}
 
-Der Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurde aus \qty{344}{PJ} Braunkohle, \qty{181}{PJ} Gas
-und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
+Vom Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurden \qty{344}{PJ} mit Braunkohle, \qty{181}{PJ} mit Gas
+und \qty{181}{PJ} Steinkohle mit produziert.\footcite{SMARDEntwicklungenIm}.
+
+
 
 \begin{table}[!htbp]
     \centering
@@ -131,7 +133,8 @@ und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
         \midrule
         Heizen         & 1651 & 807  & 97         &            \\
         Verkehr        &      & 2082 &            &            \\
-        Stromerzeugung & 181  &      & 181        & 344        \\
+        \midrule
+        Stromerzeugung in \unit{PJ_{el}} & 181  &      & 181        & 344        \\
 
         \bottomrule
     \end{tabular}
@@ -140,14 +143,30 @@ und \qty{181}{PJ} Steinkohle gedeckt.\footcite{SMARDEntwicklungenIm}
 
 \subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
 
+
 Diese in der Tabelle aufgelisteten Energiemengen entsprechen etwa der Hälfte
-der durch konventionelle Energieträger erzeugten Energien.
+der durch konventionelle Energieträger erzeugten Energien (Siehe \cref{fig:kon}).
 Die Emissionen von Treibhausgasen, die durch den Verbrauch von konventionellen Energieträgern
 entstehen, sind mitunter eine der größten Antreiber des Klimawandels.
 Um den Klimawandel zu stoppen, ist es unabdingbar, Emissionen zu minimieren.
 Eine Möglichkeit dies zu realisieren, neben des Reduzieren des Verbrauchs,
 ist das Wechseln auf emissionsärmere, und damit klimafreundlichere,
 Energieproduktionsmethoden.
+
+\begin{figure}[!h]
+    \begin{tikzpicture}
+        \pie[text=legend, sum=auto, color={yellow!60, blue!60, brown!60, red, green, teal}, radius=2]{
+            2555/Heizen (fossil\, zu ers.),
+            2082/Kraftstoff (fossi\, zu ers.),
+            706/Stromerzeugung (fossil\, zu ers.),
+            4580/Sonstige fossilen,
+            1972/Erneuerbare,
+            136/Sonstige
+        }
+    \end{tikzpicture}
+    \caption{Anteile der zu mit erneuerbaren zu ersetzenden Energieträger in \unit{PJ}}
+    \label{fig:kon}
+\end{figure}
 
 Als Alternative zum Heizen mit fossilen Brennstoffen bietet sich
 das Heizen mit Wärmepumpen an, welche etwa \unit{\frac{2}{3}} der
@@ -163,28 +182,29 @@ höhere Stromkapazitäten vorhanden sein. Diese müssten außerdem durch erneuer
 Energien abgedeckt werden. Auch die bereits von konventionellen Energieträgern
 abgedeckten Stromkapazitäten werden durch regenerative Abgedeckt werden müssen.
 
-\begin{figure}[]
-    \begin{tikzpicture}
-        \pie[text=legend, sum=auto, color={yellow!60, blue!60, brown!60, red, green, teal}, radius=2]{
-            2555/Heizen (fossil\, zu ers.),
-            2082/Kraftstoff (fossi\, zu ers.),
-            706/Stromerzeugung (fossil\, zu ers.),
-            4580/Sonstige fossilen,
-            1972/Erneuerbare,
-            136/Sonstige
-        }
-    \end{tikzpicture}
-    \caption{Anteile der zu mit erneuerbaren zu ersetzenden Energieträger in \unit{PJ}}
-\end{figure}
-
 \subsubsection{Berechnung der Emissionen}
 
+Energien müssen je nach Nutzen in eine bestimmte Energieform gebracht werden.
+Dazu werden die an die Energieträger gebundenen Energien mit chemischen und technischen
+Prozessen in die gewünschte Form gebracht.
+Beispielsweise kann die an Brennstoffen gebundene chemische Energie
+in thermische umgewandelt werden, wobei Treibhausgase freigesetzt werden.
+Diese kann anschließend zum Heizen oder in der Industrie verwendet werden
+aber auch in Kraftwerken weiter zu elektrischer Energie verarbeitet werden.
+Dabei kommt allerdings, je nach Wirkungsgrad des Kraftwerks (~\qty{45}{\%}), 
+ein großer Teil der Energie als Wärmeenergie abhanden.\footcite{AachenHatEnergie}
+
+Da die Emissionen also je nach Ausgangsenergieträger und Endform variieren,
+reicht die bloße Betrachtung der Energiemenge wie bisher nicht aus.
+Die folgende Tabelle zeigt 
 
 
 Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
 Der Emissionsfaktor gibt die Menge der Treibhausgasemissionen (CO\textsubscript{2} Äquivalent) an,
 die bei der Produktion von Energie verbraucht wird.
 Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr hoch.
+
+
 
 \begin{table}[!htbp]
     \centering
@@ -218,7 +238,7 @@ ersetzen.\footcite{EnergieWofuerErdgas}
 
 
 \subsection{Unzuverlässigkeit der Erneuerbaren}
-Dass die erweiterte Nutzung der Erneuerbaren Energien unabdingbar für die Lösung des deutschen Energieproblemes
+Dass die erweiterte Nutzung der erneuerbaren Energien unabdingbar für die Lösung des deutschen Energieproblemes
 ist, sollte nun belegt sein. Allerdings sind die darunter relevanten Energiequellen, Wind und Sonne, nicht
 zuverlässig, da sie von variierenden Umweltfaktoren abhängen. Zu schlechten Zeiten würde selbst bei einem Ausbau
 von diesen die Stromversorgung auf konventionelle Energien und Importe zurückfallen. Um das zu vermeiden braucht
