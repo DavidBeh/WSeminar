@@ -35,7 +35,8 @@
 \usepackage{booktabs}
 \sisetup{locale = DE}
 
-
+\newcommand{\pe}{_{\mathrm{PE}}}
+\newcommand{\el}{_{\mathrm{el}}}
 
 % Document
 \begin{document}
@@ -76,6 +77,8 @@ Wirtschaftlich schwächen sollen.\footcite{SanktionenGegenRussland2022}
 Dennoch bezieht Deutschland weiterhin hohe Mengen and Öl und Erdgas aus Russland, da es von diesen und
 unterstützt damit indirekt den Krieg.
 
+
+
 Im vergangenen Jahr bezog Deutschland 55\% des Erdgas aus Russland, gegen Ende dieses Jahres will man dies auf
 30\% verringern.\footcite{wdraktuellFAQWasGasLieferstopp} Dennoch wird das nicht reichen um Russland merkbar zu
 Schwächen, denn durch die vom Krieg verursachten hohen Gaspreise wird Deutschland nach Schätzungen der
@@ -90,13 +93,13 @@ Treibhausgasen einen schädlichen Einfluss auf den Klimawandel.\footcite{wilkeEr
 
 \subsection{Energieträger und ihre Umweltauswirkungen}
 
-\subsubsection{Nutzung von Primärenergieträgern}
+\subsubsection{Nutzung von Primärenergieträgern}\label{subsec:primar}
 
 Der Energieverbrauch in Deutschland wird durch unterschiedliche Energieträger gedeckt.
 Diese Energieträger unterscheiden sich unter anderem in ihrem Umwelteinfluss.
 
 Das folgende Diagramm unterteilt den Primärenergieverbrauch des Jahres 2020 von
-\qty{11.895}{P\joule}
+\qty{11.895}{PJ\pe}\footnote{PE steht für Primärenergie}
 in die unterschiedlichen Energieträger.
 Der Primärenergieverbrauch bezeichnet den Energiegehalt der verwendeten Energieträger und
 hängt unter anderem vom Wirkungsgrad ab.
@@ -112,59 +115,98 @@ hängt unter anderem vom Wirkungsgrad ab.
             1972/Erneuerbare Energien,
             136/Sonstige Energieträger}
     \end{tikzpicture}\caption{Primärenergieverbrauch nach Energieträger 2020 in
-        \unit{PJ}}
+        \unit{PJ\pe}}
 \end{figure}
 
-Davon werden etwa \qty{1257}{PJ} Gas und \qty{807}{PJ} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
-Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
-Durch Fernwärme werden ungefähr \qty{154}{PJ} Gas und \qty{97}{PJ} Steinkohle verbraucht.\footcite{WieKannTransformation}
-Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ} geschätzt werden.\footcite{Industrie}
 
-Vom Stromverbrauch des Jahres 2021 von \qty{1810}{PJ} wurden \qty{344}{PJ} mit Braunkohle, \qty{181}{PJ} mit Gas
-und \qty{181}{PJ} Steinkohle mit produziert.\footcite{SMARDEntwicklungenIm}.
+Davon werden etwa \qty{1257}{PJ\pe} Gas und \qty{807}{PJ\pe} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
+Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ\pe} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
+Durch Fernwärme werden ungefähr \qty{154}{PJ\pe} Gas und \qty{97}{PJ\pe} Steinkohle verbraucht.\footcite{WieKannTransformation}
+Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ\pe} geschätzt werden.\footcite{Industrie}
 
-
-
-\begin{table}[!htbp]
+\begin{table}[!h]
     \centering
-    \begin{tabular}{l|llll}
+    \begin{tabular}{r|llll}
         \toprule
-        \unit{PJ}      & Gas  & Öl   & Steinkohle & Braunkohle \\
+                & Gas  & Öl   & Steinkohle & Braunkohle \\
         \midrule
-        Heizen         & 1651 & 807  & 97         &            \\
-        Verkehr        &      & 2082 &            &            \\
-        \midrule
-        Stromerzeugung in \unit{PJ_{el}} & 181  &      & 181        & 344        \\
-
+        Heizen  & 1651 & 807  & 97         &            \\
+        Verkehr &      & 2082 &            &            \\
         \bottomrule
     \end{tabular}
-    \caption{(Zusammenfassung) Nutzung einiger Energieträger}
+    \caption{Nutzung einiger Energieträger in \unit{PJ\pe}}
 \end{table}
 
-\subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
+\subsubsection{Elektrische Energie}
 
+Vom Stromverbrauch des Jahres 2021 von \qty{1810}{PJ\el} wurden \qty{344}{PJ\el} mit Braunkohle, \qty{181}{PJ\el} mit Gas
+und \qty{181}{PJ\el} Steinkohle mit produziert.\footcite{SMARDEntwicklungenIm}.
+Allerdings ist es wichtig diese Menge nicht mit den anderen zu vergleichen, da es sich
+um die Erzeugnisse in elektrischer Energie handelt.
+
+Energien müssen je nach Nutzen in eine bestimmte Energieform gebracht werden.
+Dazu werden die an die Energieträger gebundenen Energien mit chemischen und technischen
+Prozessen in die gewünschte Form gebracht.
+Beispielsweise kann die an Brennstoffen gebundene chemische Energie
+in thermische umgewandelt werden, wobei Treibhausgase freigesetzt werden.
+Diese kann anschließend zum Heizen oder in der Industrie verwendet werden
+aber auch in Kraftwerken weiter zu elektrischer Energie verarbeitet werden.
+Dabei kommt allerdings, je nach Wirkungsgrad des Kraftwerks,
+ein großer Teil der Energie als Wärmeenergie abhanden.\footcite{AachenHatEnergie}
+
+Um später die Emissionen zu berechnen, müssen die elektrischen Energiemengen zuerst in
+Primärenergie umgewandelt werden
+
+Der Wirkungsgrad \unit{\eta} ist allgemein definiert als
+\(\eta=\frac{E_{\mathrm{nutz}}}{E_{\mathrm{ges}}}\).\footcite{WirkungsgradLEIFIphysik}
+Hier entspricht \(E\mathrm{_{nutz}}\) \(E\el\) und \(E_\mathrm{{ges}}\) \(E\pe\). Durch Umformen ergibt sich:
+
+\[E\pe=\frac{E\el}{\eta}\]
+
+Aus den durchschnittlichen Wirkungsgraden den jeweiligen Energieträgern und ihren Beiträgen
+zur Erzeugung können die Primärenergien berechnet werden.
+
+\begin{table}[!h]
+    \begin{tabular}{r|llll}
+        \toprule
+                                           & Gas  & Öl & Steinkohle & Braunkohle \\
+        \midrule
+        Erzeugung in \unit{PJ\el}          & 181  &    & 181        & 344        \\
+        Wirkungsgrad \protect\footnotemark & 0,49 &    & 0,44       & 0,39       \\
+        \midrule
+        Primärenergie in \unit{PJ\pe}      & 369  &    & 411        & 822        \\
+        \bottomrule
+    \end{tabular}
+    \caption{Beteiligung fossiler Energieträger an Stromerzeugung 2021}
+\end{table}
+\footnotetext{\cite{wilkeKraftwerkeKonventionelleUnd2013}}
+
+Der niedrige zeitliche Abstand der hier verwendeten Daten (2021) zu den in \cref{subsec:primar} (2020)
+wird in den nächsten Abschnitten ignoriert werden.
+
+\subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
 
 Diese in der Tabelle aufgelisteten Energiemengen entsprechen etwa der Hälfte
 der durch konventionelle Energieträger erzeugten Energien (Siehe \cref{fig:kon}).
 Die Emissionen von Treibhausgasen, die durch den Verbrauch von konventionellen Energieträgern
-entstehen, sind mitunter eine der größten Antreiber des Klimawandels.
+entstehen, sind eine der größten Antreiber des Klimawandels.
 Um den Klimawandel zu stoppen, ist es unabdingbar, Emissionen zu minimieren.
 Eine Möglichkeit dies zu realisieren, neben des Reduzieren des Verbrauchs,
 ist das Wechseln auf emissionsärmere, und damit klimafreundlichere,
-Energieproduktionsmethoden.
+Energieproduktionsmethoden. % Muss überarbietet werden
 
 \begin{figure}[!h]
     \begin{tikzpicture}
         \pie[text=legend, sum=auto, color={yellow!60, blue!60, brown!60, red, green, teal}, radius=2]{
-            2555/Heizen (fossil\, zu ers.),
-            2082/Kraftstoff (fossi\, zu ers.),
-            706/Stromerzeugung (fossil\, zu ers.),
-            4580/Sonstige fossilen,
+            2555/Heizen (fossil\; zu ers.),
+            2082/Kraftstoff (fossi\; zu ers.),
+            1602/Stromerzeugung (fossil\; zu ers.),
+            3548/Sonstige fossilen,
             1972/Erneuerbare,
             136/Sonstige
         }
     \end{tikzpicture}
-    \caption{Anteile der zu mit erneuerbaren zu ersetzenden Energieträger in \unit{PJ}}
+    \caption{Zu ersetzenden fossile Energieträger in \unit{PJ\pe}}
     \label{fig:kon}
 \end{figure}
 
@@ -182,21 +224,9 @@ höhere Stromkapazitäten vorhanden sein. Diese müssten außerdem durch erneuer
 Energien abgedeckt werden. Auch die bereits von konventionellen Energieträgern
 abgedeckten Stromkapazitäten werden durch regenerative Abgedeckt werden müssen.
 
-\subsubsection{Berechnung der Emissionen}
+\subsubsection{Berechnung der Emissionen}\label{subsec:emission}
 
-Energien müssen je nach Nutzen in eine bestimmte Energieform gebracht werden.
-Dazu werden die an die Energieträger gebundenen Energien mit chemischen und technischen
-Prozessen in die gewünschte Form gebracht.
-Beispielsweise kann die an Brennstoffen gebundene chemische Energie
-in thermische umgewandelt werden, wobei Treibhausgase freigesetzt werden.
-Diese kann anschließend zum Heizen oder in der Industrie verwendet werden
-aber auch in Kraftwerken weiter zu elektrischer Energie verarbeitet werden.
-Dabei kommt allerdings, je nach Wirkungsgrad des Kraftwerks (~\qty{45}{\%}), 
-ein großer Teil der Energie als Wärmeenergie abhanden.\footcite{AachenHatEnergie}
-
-Da die Emissionen also je nach Ausgangsenergieträger und Endform variieren,
-reicht die bloße Betrachtung der Energiemenge wie bisher nicht aus.
-Die folgende Tabelle zeigt 
+Emissionen variieren je nach Energieträger
 
 
 Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
