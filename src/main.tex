@@ -122,7 +122,7 @@ hängt unter anderem vom Wirkungsgrad ab.
 Davon werden etwa \qty{1257}{PJ\pe} Gas und \qty{807}{PJ\pe} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
 Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ\pe} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
 Durch Fernwärme werden ungefähr \qty{154}{PJ\pe} Gas und \qty{97}{PJ\pe} Steinkohle verbraucht.\footcite{WieKannTransformation}
-Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ\pe} geschätzt werden.\footcite{Industrie}
+Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{70}{PJ\pe} geschätzt werden.\footcite{Industrie}
 
 \begin{table}[!h]
     \centering
@@ -130,7 +130,7 @@ Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{240}{PJ\pe} gesc
         \toprule
                 & Gas  & Öl   & Steinkohle & Braunkohle \\
         \midrule
-        Heizen  & 1651 & 807  & 97         &            \\
+        Heizen  & 1327 & 807  & 97         &            \\
         Verkehr &      & 2082 &            &            \\
         \bottomrule
     \end{tabular}
@@ -182,7 +182,7 @@ zur Erzeugung können die Primärenergien berechnet werden.
 \footnotetext{\cite{wilkeKraftwerkeKonventionelleUnd2013}}
 
 Der niedrige zeitliche Abstand der hier verwendeten Daten (2021) zu den in \cref{subsec:primar} (2020)
-wird in den nächsten Abschnitten ignoriert werden.
+wird in den nächsten Abschnitten ignoriert.
 
 \subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
 
@@ -226,10 +226,8 @@ abgedeckten Stromkapazitäten werden durch regenerative Abgedeckt werden müssen
 
 \subsubsection{Berechnung der Emissionen}\label{subsec:emission}
 
-Emissionen variieren je nach Energieträger
-
-
-Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
+Die Menge der bei Verbrennung freigesetzten Treibhausgase varriert je
+nach Energieträger. Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
 Der Emissionsfaktor gibt die Menge der Treibhausgasemissionen (CO\textsubscript{2} Äquivalent) an,
 die bei der Produktion von Energie verbraucht wird.
 Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr hoch.
@@ -238,15 +236,16 @@ Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr h
 
 \begin{table}[!htbp]
     \centering
-    \begin{tabular}{l|ll}
+    \begin{tabular}{r|llll}
 
         \toprule
-        \unit{\frac{tCO_2}{TJ}} & Wärmeerzeugung / Verkehr & Stromerzeugung \\
+         & Gas & Öl & Steinkohle & Braunkohle\\
         \midrule
-        Gas                     & \num{58e3}               & \num{120e3}    \\
-        Öl                      & \num{75e3}               &                \\
-        Steinkohle              & \num{98e3}               & \num{278e3}    \\
-        Braunkohle              & \num{101e3}              & \num{304e3}    \\
+        Emissionsfaktor & & & & \\
+        \midrule
+        Emissionen durch Heizen & & & & \\
+        Emissionen durch Treibstoff & & & & \\
+        Emissionen durch Stromerzeugung & & & & \\
         \bottomrule
     \end{tabular}
     \caption{Emissionsfaktoren der Energieträger je nach Verwendung\protect\footnotemark}
