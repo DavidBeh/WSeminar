@@ -1,0 +1,99 @@
+﻿@page "/"
+@using System.Diagnostics
+@using System.Xml.Schema
+@using WSeminar.V2G.Simulator.WASM.Smard
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Nav
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?"/>
+
+<div class="mb-3 row gx-3 gy-2 align-items-center">
+    <div class="col-auto">
+        <div class="input-group">
+            <label class="input-group-text">Start</label>
+            <input @ref="StartPicker" class="form-control" type="date" @bind="StartDate"/>
+            <button title="Zeitraum auf eine Woche setzen" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar2-week-fill"></i>
+            </button>
+
+        </div>
+    </div>
+
+    <div class="col-auto">
+        <div class="input-group">
+            <label class="input-group-text">Ende</label>
+            <input class="form-control" type="date" @bind="EndDate"/>
+            <button title="Auf Heute setzen" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar2-day-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<input type="text" @bind="TestValue"/>
+<input type="button" @onclick="LoadIndex"/>
+
+@if (_idx != null)
+{
+    foreach (var dateTime in _idx)
+    {
+        @dateTime
+    }
+}
+
+@code
+{
+
+    
+    
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+
+    public string? TestValue { get; set; }
+
+    private SmardClient _client = new SmardClient();
+    
+    protected override void OnInitialized()
+    {
+        EndDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-1);
+        StartDate = EndDate.AddDays(-7);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", "./Pages/Index.razor.js");
+        
+        
+        
+    }
+    
+    
+    
+
+    private void Callback()
+    {
+        _module.InvokeVoidAsync("selectInput", StartPicker);
+    }
+
+    private IJSObjectReference _module;
+    public ElementReference StartPicker { get; set; }
+
+    private List<DateTime>? _idx { get; set; }
+    
+    private async Task LoadIndex()
+    {
+        _idx =await _client.GetIndex((int) SmardClient.Filter.Consumption_All, SmardClient.Resolution.Day);
+    }
+}

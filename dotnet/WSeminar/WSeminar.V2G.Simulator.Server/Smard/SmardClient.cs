@@ -1,42 +1,27 @@
-﻿using System.Dynamic;
-using System.Net.Http.Json;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using System.Collections.ObjectModel;
+using System.Dynamic;
+using System.Globalization;
+using System.Net.Http.Headers;
 using System.Text.Json;
-using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using ApexCharts;
 
 // ReSharper disable InconsistentNaming
 
-namespace WSeminar.V2G.Simulator.WASM.Smard;
+namespace WSeminar.V2G.Simulator.Server.Smard;
 
 public class SmardClient
 {
-    private HttpClient _httpClient = new HttpClient() { BaseAddress = new Uri("https://www.smard.de/app/chart_data/") };
+    private readonly HttpClient _httpClient;
 
-    [Flags]
-    public enum EnergySource
+    public SmardClient(HttpClient c)
     {
-        Bio = 0,
-        Water = 1 << 0,
-        WindOffshore = 1 << 1,
-        WindOnshore = 1 << 2,
-        Solar = 1 << 3,
-        Nuclear = 1 << 4,
-        BrownCoal = 1 << 5,
-        HardCoal = 1 << 6,
-        Gas = 1 << 7,
-        PumpedHydro = 1 << 8,
-
-        All = Bio | Water | WindOffshore | WindOnshore | Solar | Nuclear | BrownCoal | HardCoal | Gas | PumpedHydro,
-        Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | PumpedHydro,
-        Conventional = Nuclear | BrownCoal | HardCoal | Gas
+        _httpClient = c;
+        _httpClient.BaseAddress = new Uri("https://www.smard.de/app/chart_data/");
     }
 
-    public async Task<List<DateTime>> GetIndex(int filter, Resolution resolution)
+    public async Task<List<DateTimeOffset>> GetIndex(int filter, DataResolution resolution)
     {
-
         var request = new HttpRequestMessage(HttpMethod.Get, $"{filter}/DE/index_{resolution.ToSmardString()}.json");
-        request.SetBrowserRequestMode(BrowserRequestMode.NoCors);
         var res = await _httpClient.SendAsync(request);
         if (!res.IsSuccessStatusCode)
         {
@@ -46,18 +31,84 @@ public class SmardClient
         var json = await res.Content.ReadFromJsonAsync<JsonDocument>();
 
         return json!.RootElement.GetProperty("timestamps").EnumerateArray().Select(element =>
-            DateTimeOffset.FromUnixTimeMilliseconds(element.GetInt64()).DateTime).ToList();
+            DateTimeOffset.FromUnixTimeMilliseconds(element.GetInt64())).ToList();
     }
 
-    public enum Resolution
+    public async Task<Dictionary<DateTimeOffset, decimal?>> GetSeries(int filter, DataResolution resolution,
+        DateTimeOffset offset)
     {
-        QuarterHour,
-        Hour,
-        Day,
-        Week,
-        Month,
-        Year
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            $"{filter}/DE/{filter}_DE_{resolution.ToSmardString()}_{offset.ToUnixTimeMilliseconds()}.json");
+        var res = await _httpClient.SendAsync(request);
+        if (!res.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException("Error code returned from Smard api: " + res.ToString());
+        }
+
+        var json = await res.Content.ReadFromJsonAsync<JsonDocument>();
+
+        return json!.RootElement.GetProperty("series").EnumerateArray().ToDictionary(
+            element => DateTimeOffset.FromUnixTimeMilliseconds(element[0].GetInt64()), element =>
+            {
+                if (element[1].ValueKind == JsonValueKind.Null)
+                {
+                    return (decimal?)null;
+                }
+
+                return element[1].GetDecimal();
+            });
     }
+
+    public async Task<IEnumerable<SeriesItem>> GetSeriesRange(int filter, DataResolution resolution,
+        DateTimeOffset start, DateTimeOffset end)
+    {
+        
+        Console.WriteLine("FILTER: " + filter);
+        var index = await GetIndex(filter, resolution);
+        index.Add(DateTimeOffset.MaxValue);
+        /*
+        index.Zip(index.Skip(1),
+                (offset, timeOffset) => (begin: offset, next: timeOffset)).ToList()
+            .ForEach(tuple => Console.WriteLine(tuple));
+        */
+        var timesToRequest = index.Zip(index.Skip(1),
+                (offset, timeOffset) => (begin: offset, next: timeOffset))
+            .Where(file => file.next > start && end >= file.begin);
+        //var timesToRequest = index.Where(time => time >= start && time <= end).ToList();
+
+        var tasks = timesToRequest.Select(time => GetSeries(filter, resolution, time.begin));
+        var results = await Task.WhenAll(tasks);
+
+        return results.SelectMany(dict => dict).Where(pair => pair.Key >= start && pair.Key < end)
+            .Select(pair => new SeriesItem(pair.Key, pair.Value, resolution));
+    }
+
+
+    /// <summary>
+    /// Returns the energy production for the given sources in the given time range.
+    /// </summary>
+    /// <param name="sources">Energy sources. Supports bitwise flags</param>
+    /// <param name="resolution"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns>Returns a dictionary with the EnergySource as key and Dictionaries containing time and value as value in MWh</returns>
+    public async Task<Dictionary<EnergySource, List<SeriesItem>>> GetProduction(
+        EnergySource sources,
+        DataResolution resolution,
+        DateTimeOffset start, DateTimeOffset end)
+    {
+        var tuples = sources.GetEnergySourceFlags().Select(source =>
+            (EnergySource: source, Task: GetSeriesRange(source.GetProductionId(), resolution, start, end))).ToList();
+
+        await Task.WhenAll(tuples.Select(t => t.Task));
+        return
+            tuples.ToDictionary(
+                t => t.EnergySource, // Key (EnergySource)
+                t => t.Task.Result.ToList()); // Value (List of SeriesItems)
+    }
+
+
+
 
     [Flags]
     public enum Filter
@@ -117,7 +168,52 @@ public class SmardClient
     }
 }
 
-public static class FilterExtensions
+public enum DataResolution
+{
+    QuarterHour,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year
+}
+
+[Flags]
+public enum EnergySource
+{
+    Bio = 1 << 0,
+    Water = 1 << 1,
+    WindOffshore = 1 << 2,
+    WindOnshore = 1 << 3,
+    Solar = 1 << 4,
+    OtherRenewable = 1 << 5,
+    Nuclear = 1 << 6,
+    BrownCoal = 1 << 7,
+    HardCoal = 1 << 8,
+    Gas = 1 << 9,
+    PumpedHydro = 1 << 10,
+    OtherFossil = 1 << 11,
+
+    All = Bio | Water | WindOffshore | WindOnshore | Solar | OtherRenewable | Nuclear | BrownCoal | HardCoal | Gas | PumpedHydro | OtherFossil,
+    Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | PumpedHydro,
+    Conventional = Nuclear | BrownCoal | HardCoal | Gas
+}
+
+public class SeriesItem
+{
+    public readonly DateTimeOffset Time;
+    public readonly decimal? Value;
+    public readonly DataResolution Resolution;
+
+    public SeriesItem(DateTimeOffset time, decimal? value, DataResolution resolution)
+    {
+        Time = time;
+        Value = value;
+        Resolution = resolution;
+    }
+}
+
+public static class SmardEnumHelpers
 {
     public static SmardClient.FilterGroup[] GetGroups(this SmardClient.Filter filter)
     {
@@ -127,5 +223,54 @@ public static class FilterExtensions
         return Enum.GetValues<SmardClient.FilterGroup>().Where(fg => fg.ToString() == filterGroup).ToArray();
     }
 
-    public static string ToSmardString(this SmardClient.Resolution resolution) => resolution.ToString().ToLower();
+    public static IEnumerable<EnergySource> GetEnergySourceFlags(this EnergySource source)
+    {
+        return Enum.GetValues<EnergySource>()
+            .Where(energySource => energySource.GetFlags().Count() == 1 && source.HasFlag(energySource));
+    }
+
+    public static IEnumerable<T> GetFlags<T>(this T e) where T : System.Enum
+        => e.GetType().GetEnumValues().Cast<T>().Where(o => e.HasFlag(o));
+
+    public static int GetProductionId(this EnergySource source) =>
+        source switch
+        {
+            EnergySource.Bio => 4066,
+            EnergySource.Water => 1226,
+            EnergySource.WindOffshore => 1225,
+            EnergySource.WindOnshore => 4067,
+            EnergySource.Solar => 4068,
+            EnergySource.OtherRenewable => 1228,
+            EnergySource.Nuclear => 1224,
+            EnergySource.BrownCoal => 1223,
+            EnergySource.HardCoal => 4069,
+            EnergySource.Gas => 4071,
+            EnergySource.PumpedHydro => 4070,
+            EnergySource.OtherFossil => 1227,
+            _ => throw new IndexOutOfRangeException(
+                "Invalid EnergySource. Bitflags are not supported. Use GetEnergySourceFlags() before calling this method."),
+        };
+
+    private static int GetInstalledId(this EnergySource source) => source switch
+    {
+        EnergySource.Bio => 189,
+        EnergySource.Water => 3792,
+        EnergySource.WindOffshore => 4076,
+        EnergySource.WindOnshore => 186,
+        EnergySource.Solar => 188,
+        EnergySource.OtherRenewable => 194,
+        EnergySource.Nuclear => 4073,
+        EnergySource.BrownCoal => 4072,
+        EnergySource.HardCoal => 4075,
+        EnergySource.Gas => 198,
+        EnergySource.PumpedHydro => 4074,
+        EnergySource.OtherFossil => 207,
+        _ => throw new IndexOutOfRangeException(
+            "Invalid EnergySource. Bitflags are not supported. Use GetEnergySourceFlags() before calling this method."),
+    };
+}
+
+public static class FilterExtensions
+{
+    public static string ToSmardString(this DataResolution resolution) => resolution.ToString().ToLower();
 }

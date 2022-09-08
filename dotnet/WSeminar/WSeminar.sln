@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Forms", "WSeminar.V2G.Simulation.Forms\WSeminar.V2G.Simulation.Forms.csproj", "{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulator.WASM", "WSeminar.V2G.Simulator.WASM\WSeminar.V2G.Simulator.WASM.csproj", "{8175B997-3864-4B2C-A330-96DC2FC8FBAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{EF5DE657-8992-4CEF-85E8-51985A088C91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulator.Server", "WSeminar.V2G.Simulator.Server\WSeminar.V2G.Simulator.Server.csproj", "{AC16B72E-651C-4DBC-8690-1572E5FE713D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8175B997-3864-4B2C-A330-96DC2FC8FBAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8175B997-3864-4B2C-A330-96DC2FC8FBAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8175B997-3864-4B2C-A330-96DC2FC8FBAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8175B997-3864-4B2C-A330-96DC2FC8FBAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5DE657-8992-4CEF-85E8-51985A088C91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5DE657-8992-4CEF-85E8-51985A088C91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5DE657-8992-4CEF-85E8-51985A088C91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5DE657-8992-4CEF-85E8-51985A088C91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC16B72E-651C-4DBC-8690-1572E5FE713D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC16B72E-651C-4DBC-8690-1572E5FE713D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC16B72E-651C-4DBC-8690-1572E5FE713D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC16B72E-651C-4DBC-8690-1572E5FE713D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

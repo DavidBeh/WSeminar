@@ -1,10 +1,10 @@
 ﻿@page "/"
 @using System.Diagnostics
-@using System.Xml.Schema
-@using WSeminar.V2G.Simulator.WASM.Smard
+@using WSeminar.V2G.Simulator.Server.Smard
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Nav
-
+@inject SmardClient Client
+@inject ILogger<Index> Logger
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
@@ -18,69 +18,118 @@ Welcome to your new app.
         <div class="input-group">
             <label class="input-group-text">Start</label>
             <input @ref="StartPicker" class="form-control" type="date" @bind="StartDate"/>
-            <button title="Zeitraum auf eine Woche setzen" class="btn btn-outline-secondary">
+            <button title="Zeitraum auf eine Woche setzen" class="btn btn-outline-secondary" @onclick="SetOneWeek">
                 <i class="bi bi-calendar2-week-fill"></i>
             </button>
-
         </div>
     </div>
 
     <div class="col-auto">
         <div class="input-group">
             <label class="input-group-text">Ende</label>
-            <input class="form-control" type="date" @bind="EndDate"/>
-            <button title="Auf Heute setzen" class="btn btn-outline-secondary">
+            <input class="form-control" type="date" @bind="DisplayedEndDate"/>
+            <button title="Auf Gestern setzen" class="btn btn-outline-secondary" @onclick="SetYesterday">
                 <i class="bi bi-calendar2-day-fill"></i>
             </button>
         </div>
     </div>
+
+    <div class="col-auto">
+        <button @onclick="Update" class="btn btn-primary">
+            Anwenden
+        </button>
+    </div>
 </div>
 
-<input type="text" @bind="TestValue"/>
-<input type="button" @onclick="LoadIndex"/>
-
-@if (_idx != null)
+@if (_lastProductionData != null)
 {
-    foreach (var dateTime in _idx)
+    var options = new ApexChartOptions<SeriesItem>()
     {
-        @dateTime
-    }
+        
+        Xaxis = new XAxis()
+        {
+            Min = StartDate.AddHours(-1).ToUnixTimeMilliseconds(),
+            Max = EndDate.AddHours(1).ToUnixTimeMilliseconds(),
+            Labels = new XAxisLabels()
+            {
+                DatetimeUTC = false,
+            },
+            Type = XAxisType.Datetime
+        },
+        Chart = new Chart
+        {
+            Stacked = true,
+        },
+    };
+
+    options.Tooltip = new Tooltip()
+    {
+        Enabled = true,
+        X = new TooltipX()
+        {
+            Format = "dd.MM\u3000HH:mm"
+        }
+    };
+
+    var l = _lastProductionData
+        .SelectMany(pair =>
+            pair.Value.Select(item => (EnergySource: pair.Key, SeriesItem: item)));
+
+    var sum = l.GroupBy(tuple => tuple.SeriesItem.Time)
+        .Select(tuples =>
+            new SeriesItem(
+                tuples.Key,
+                tuples.Aggregate(0m, (i, tuple) => i + (tuple.SeriesItem.Value ?? 0)),
+                tuples.First().SeriesItem.Resolution));
+    
+    <ApexChart @ref="_chartRef" TItem="SeriesItem" Options="options">
+
+        <ApexPointSeries SeriesType="SeriesType.Line"
+                         TItem="SeriesItem" Items="@sum"
+                         XValue="item => item.Time"
+                         YValue="item => item.Value">
+
+        </ApexPointSeries>
+
+        @foreach (var (energy, values) in _lastProductionData)
+        {
+            <ApexPointSeries TItem="SeriesItem"
+                             Items="values"
+                             SeriesType="SeriesType.Area"
+                             Name="@energy.ToString()"
+                             XValue="item => item.Time"
+                             YValue="item => item.Value">
+            </ApexPointSeries>
+        }
+
+
+    </ApexChart>
 }
 
 @code
 {
 
+    public DateTimeOffset StartDate { get; set; }
+    private DateTimeOffset DisplayedEndDate { get; set; }
+    public DateTimeOffset EndDate { get => DisplayedEndDate.AddDays(1); set => DisplayedEndDate = value.AddDays(-1); }
     
-    
-    public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
-
     public string? TestValue { get; set; }
 
-    private SmardClient _client = new SmardClient();
-    
+    private ApexChart<SeriesItem>? _chartRef;
+
+    private Dictionary<EnergySource, List<SeriesItem>>? _lastProductionData;
+
     protected override void OnInitialized()
     {
-        EndDate = DateOnly.FromDateTime(DateTime.Today).AddDays(-1);
-        StartDate = EndDate.AddDays(-7);
+        SetYesterday();
+        SetOneWeek();
     }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
             "import", "./Pages/Index.razor.js");
-        
-        
-        
     }
-    
-    
-    
+
 
     private void Callback()
     {
@@ -90,10 +139,52 @@ Welcome to your new app.
     private IJSObjectReference _module;
     public ElementReference StartPicker { get; set; }
 
-    private List<DateTime>? _idx { get; set; }
-    
+    private TimeSpan _timeSpan { get; set; }
+
     private async Task LoadIndex()
     {
-        _idx =await _client.GetIndex((int) SmardClient.Filter.Consumption_All, SmardClient.Resolution.Day);
+        var s = Stopwatch.StartNew();
+
+        s.Stop();
+        _timeSpan = s.Elapsed;
+    }
+
+    private async Task Update()
+    {
+        var s = Stopwatch.StartNew();
+        
+        var vals
+            = await Client.GetProduction(EnergySource.All, DataResolution.Hour, StartDate, EndDate);
+        
+        s.Stop();
+        _lastProductionData = vals;
+
+
+    //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
+    //StateHasChanged();
+    //await Task.Delay(1000);
+
+        Logger.LogInformation("Fetched Entries ({Count})", _lastProductionData.First().Value.Count);
+
+        if (_chartRef != null)
+        {
+            Logger.LogInformation("Updating Series");
+            StateHasChanged();
+    //await Task.Delay(3000);
+            await _chartRef.UpdateSeriesAsync();
+        }
+        
+        Logger.LogInformation(s.Elapsed.ToString());
+        
+    }
+
+    private void SetOneWeek()
+    {
+        StartDate = EndDate.AddDays(-6);
+    }
+
+    private void SetYesterday()
+    {
+        EndDate = DateTime.Today;
     }
 }

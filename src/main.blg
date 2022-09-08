@@ -1,0 +1,18 @@
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'main.blg'
+[129] biber-MSWIN64:340> INFO - === 
+[188] Biber.pm:418> INFO - Reading 'main.bcf'
+[380] Biber.pm:972> INFO - Found 13 citekeys in bib section 0
+[397] Biber.pm:4383> INFO - Processing section 0
+[409] Biber.pm:4574> INFO - Looking for bibtex file 'main2.bib' for section 0
+[467] bibtex.pm:1713> INFO - LaTeX decoding ...
+[493] bibtex.pm:1518> INFO - Found BibTeX data source 'main2.bib'
+[570] UCollate.pm:68> INFO - Overriding locale 'de-DE' defaults 'level = 4' with 'level = 2'
+[570] UCollate.pm:68> INFO - Overriding locale 'de-DE' defaults 'variable = shifted' with 'variable = non-ignorable'
+[570] UCollate.pm:68> INFO - Overriding locale 'de-DE' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[570] Biber.pm:4203> INFO - Sorting list 'cms/global//global/global' of type 'entry' with template 'cms' and locale 'de-DE'
+[570] Biber.pm:4209> INFO - No sort tailoring available for locale 'de-DE'
+[585] bbl.pm:654> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[589] bbl.pm:757> INFO - Output to main.bbl
+[589] Biber.pm:130> WARN - Entry 'wilkeErneuerbareUndKonventionelle2013' (main2.bib): Invalid format '2013-07-18T14:22+02:00' of date field 'date' - ignoring
+[589] Biber.pm:132> INFO - WARNINGS: 1
