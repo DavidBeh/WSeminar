@@ -1,8 +1,4 @@
-%! suppress = MissingLabel
-%! Author = David
-%! Date = 26.05.2022
 
-% Preamble
 \documentclass[12pt, ngerman]{article}
 
 % Zitieren
@@ -15,6 +11,8 @@
 %test
 
 \usepackage[ngerman]{babel}
+\usepackage{csquotes}
+\MakeOuterQuote{"}
 
 %\usepackage{color}
 %\usepackage{amssymb}
@@ -23,7 +21,7 @@
 \usepackage{pgf-pie}
 \usepackage{pgfplots}
 %\usepackage[section]{placeins}
-
+\graphicspath{{images/}}
 
 \usepackage[a4paper,margin=3cm]{geometry}
 \usepackage[onehalfspacing]{setspace}
@@ -55,7 +53,7 @@
 \pagebreak
 
 
-\section{Nutzen des Bidirektionalen Ladens für das deutsche Stromnetz}
+\section{Bewältigung der Klima- und Energiekrise und die Rolle von E-Autos}
 
 
 
@@ -93,7 +91,7 @@ Treibhausgasen einen schädlichen Einfluss auf den Klimawandel.\footcite{wilkeEr
 
 \subsection{Energieträger und ihre Umweltauswirkungen}
 
-\subsubsection{Nutzung von Primärenergieträgern}\label{subsec:primar}
+\subsubsection{Statistiken und Erklärungen zur aktuellen Lage in Deutschland}\label{subsec:primar}
 
 Der Energieverbrauch in Deutschland wird durch unterschiedliche Energieträger gedeckt.
 Diese Energieträger unterscheiden sich unter anderem in ihrem Umwelteinfluss.
@@ -118,29 +116,17 @@ hängt unter anderem vom Wirkungsgrad ab.
         \unit{PJ\pe}}
 \end{figure}
 
+Davon wurden etwa \qty{1482}{PJ\pe} Erdgas zum Heizen verwendet, sowie \qty{576}{PJ\pe}
+zur Erzeugung von Prozesswärme in der Industrie, \qty{384}{} und \qty{177}{PJ\pe} für Eigenstromerzeugung
+in der Industrie verwendet.\footcite{Industrie, Energieflussbild2020PJLang, WieKannTransformation}
 
-Davon werden etwa \qty{1257}{PJ\pe} Gas und \qty{807}{PJ\pe} Öl direkt zum Beheizen für den Gewerbe-, Handels-,
-Dienstleistungs- und Wohnsektor, sowie \qty{2082}{PJ\pe} Öl als Brennstoff im Verkehrssektor verwendet.\footcite{Energieflussbild2020PJLang}
-Durch Fernwärme werden ungefähr \qty{154}{PJ\pe} Gas und \qty{97}{PJ\pe} Steinkohle verbraucht.\footcite{WieKannTransformation}
-Das Beheizen im Industriesektor durch Erdgas kann grob auf \qty{70}{PJ\pe} geschätzt werden.\footcite{Industrie}
-
-\begin{table}[!h]
-    \centering
-    \begin{tabular}{r|llll}
-        \toprule
-                & Gas  & Öl   & Steinkohle & Braunkohle \\
-        \midrule
-        Heizen  & 1327 & 807  & 97         &            \\
-        Verkehr &      & 2082 &            &            \\
-        \bottomrule
-    \end{tabular}
-    \caption{Nutzung einiger Energieträger in \unit{PJ\pe}}
-\end{table}
+Der Mineralölverbrauch für das Heizen beträgt \qty{809}{PJ\pe}, für Fahrzeuge \qty{1642}{PJ\pe}
+und für Flugzeuge \qty{335}{PJ\pe}.\footcite{Energieflussbild2020PJLang, wilkeEndenergieverbrauchUndEnergieeffizienz2013}
 
 \subsubsection{Elektrische Energie}
 
-Vom Stromverbrauch des Jahres 2021 von \qty{1810}{PJ\el} wurden \qty{344}{PJ\el} mit Braunkohle, \qty{181}{PJ\el} mit Gas
-und \qty{181}{PJ\el} Steinkohle mit produziert.\footcite{SMARDEntwicklungenIm}.
+Von der Stromerzeugung des Jahres 2021 von \qty{1819}{PJ\el} wurden \qty{353}{PJ\el} mit Braunkohle, \qty{139}{PJ\el} mit Gas
+und \qty{187}{PJ\el} Steinkohle mit produziert.\footcite{SMARDEntwicklungenIm}.
 Allerdings ist es wichtig diese Menge nicht mit den anderen zu vergleichen, da es sich
 um die Erzeugnisse in elektrischer Energie handelt.
 
@@ -163,52 +149,43 @@ Hier entspricht \(E\mathrm{_{nutz}}\) \(E\el\) und \(E_\mathrm{{ges}}\) \(E\pe\)
 
 \[E\pe=\frac{E\el}{\eta}\]
 
-Aus den durchschnittlichen Wirkungsgraden den jeweiligen Energieträgern und ihren Beiträgen
-zur Erzeugung können die Primärenergien berechnet werden.
-
-\begin{table}[!h]
-    \begin{tabular}{r|llll}
-        \toprule
-                                           & Gas  & Öl & Steinkohle & Braunkohle \\
-        \midrule
-        Erzeugung in \unit{PJ\el}          & 181  &    & 181        & 344        \\
-        Wirkungsgrad \protect\footnotemark & 0,49 &    & 0,44       & 0,39       \\
-        \midrule
-        Primärenergie in \unit{PJ\pe}      & 369  &    & 411        & 822        \\
-        \bottomrule
-    \end{tabular}
-    \caption{Beteiligung fossiler Energieträger an Stromerzeugung 2021}
-\end{table}
-\footnotetext{\cite{wilkeKraftwerkeKonventionelleUnd2013}}
+Aus den durchschnittlichen Wirkungsgraden der Kraftwerke lässt sich die
+elektrische Energieproduktion des Jahres 2021 in \qty{385}{PJ\pe} Gas,
+\qty{896}{PJ\pe} Braunkohle und \qty{429}{PJ\pe} Steinkohle umrechnen.\footcite{wilkeKraftwerkeKonventionelleUnd2013}
 
 Der niedrige zeitliche Abstand der hier verwendeten Daten (2021) zu den in \cref{subsec:primar} (2020)
 wird in den nächsten Abschnitten ignoriert.
 
-\subsubsection{Ursache und Lösung der von konventionelle Energieträgern verursachten Klimaschäden}
+\subsubsection{Zusammenfassung des Energieverbrauchs und dessen Emissionen}
 
-Diese in der Tabelle aufgelisteten Energiemengen entsprechen etwa der Hälfte
-der durch konventionelle Energieträger erzeugten Energien (Siehe \cref{fig:kon}).
-Die Emissionen von Treibhausgasen, die durch den Verbrauch von konventionellen Energieträgern
+Die Emissionen von Treibhausgasen, die durch die Förderung und den Verbrauch von konventionellen Energieträgern
 entstehen, sind eine der größten Antreiber des Klimawandels.
-Um den Klimawandel zu stoppen, ist es unabdingbar, Emissionen zu minimieren.
-Eine Möglichkeit dies zu realisieren, neben des Reduzieren des Verbrauchs,
-ist das Wechseln auf emissionsärmere, und damit klimafreundlichere,
-Energieproduktionsmethoden. % Muss überarbietet werden
+Die Menge der Emissionen variiert je nach Energieträger. Die folgende Tabelle
+listet diese sogenannten "Emissionsfaktoren" in \unit{tCO^2/PJ\pe} auf.\footcite{balserOlUndGas}
+%direkte emissionsfaktoren
 
-\begin{figure}[!h]
-    \begin{tikzpicture}
-        \pie[text=legend, sum=auto, color={yellow!60, blue!60, brown!60, red, green, teal}, radius=2]{
-            2555/Heizen (fossil\; zu ers.),
-            2082/Kraftstoff (fossi\; zu ers.),
-            1602/Stromerzeugung (fossil\; zu ers.),
-            3548/Sonstige fossilen,
-            1972/Erneuerbare,
-            136/Sonstige
-        }
-    \end{tikzpicture}
-    \caption{Zu ersetzenden fossile Energieträger in \unit{PJ\pe}}
-    \label{fig:kon}
-\end{figure}
+\begin{center}
+    \begin{tabular}{r|l}
+        \toprule
+        Energieträger & Emissionsfaktor \\
+        \midrule
+        Erdgas        & 55              \\
+        Mineralöl     & 75              \\
+        Steinkohle    & 101             \\
+        Braunkohle    & 98              \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+
+\paragraph{Zusammenfassung}
+
+Die folgende Grafik ist eine Zusammenfassung der bisher ermittelten Energieverbräuche und ihrer Anwendungen in \unit{PJ\pe}.
+
+\includegraphics{anwendung}
+
+Die Summe dieser Energien beträgt \qty{6809}{PJ\pe}, was über der Hälfte des Primärenergieverbrauchs liegt und somit auch
+in etwa die Hälfte der Emissionen erzeugt. In den folgenden Abschnitten wird sich damit befasst werden, wie man
+diese durch Alternativen vermeiden kann und welche rolle das bidirektionale Laden spielen könnte.
 
 Als Alternative zum Heizen mit fossilen Brennstoffen bietet sich
 das Heizen mit Wärmepumpen an, welche etwa \unit{\frac{2}{3}} der
@@ -224,33 +201,12 @@ höhere Stromkapazitäten vorhanden sein. Diese müssten außerdem durch erneuer
 Energien abgedeckt werden. Auch die bereits von konventionellen Energieträgern
 abgedeckten Stromkapazitäten werden durch regenerative Abgedeckt werden müssen.
 
-\subsubsection{Berechnung der Emissionen}\label{subsec:emission}
+\subsection{Lösungsansätze und Maßnahmen zur Vermeidung von Emissionen}
 
-Die Menge der bei Verbrennung freigesetzten Treibhausgase varriert je
-nach Energieträger. Um die Emissionen der Energieträger einzuschätzen, muss man diese mit dem Emissionsfaktor multiplizieren.
-Der Emissionsfaktor gibt die Menge der Treibhausgasemissionen (CO\textsubscript{2} Äquivalent) an,
-die bei der Produktion von Energie verbraucht wird.
-Besonders bei der Stromerzeugung ist dieser wegen der niedrigen Effizienz sehr hoch.
+Dieser Abschnitt wird verschiedene Lösungsansätze Erklären und Bewerten.
 
 
 
-\begin{table}[!htbp]
-    \centering
-    \begin{tabular}{r|llll}
-
-        \toprule
-         & Gas & Öl & Steinkohle & Braunkohle\\
-        \midrule
-        Emissionsfaktor & & & & \\
-        \midrule
-        Emissionen durch Heizen & & & & \\
-        Emissionen durch Treibstoff & & & & \\
-        Emissionen durch Stromerzeugung & & & & \\
-        \bottomrule
-    \end{tabular}
-    \caption{Emissionsfaktoren der Energieträger je nach Verwendung\protect\footnotemark}
-\end{table}
-\footnotetext{\cite{quaschningSpecificCarbonDioxide}}
 
 
 
