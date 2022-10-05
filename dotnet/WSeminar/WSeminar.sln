@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulator.Serv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Shared", "WSeminar.V2G.Simulation.Shared\WSeminar.V2G.Simulation.Shared.csproj", "{EB249FAF-4532-4D5B-906F-C30C00974ACE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Console", "WSeminar.V2G.Simulation.Console\WSeminar.V2G.Simulation.Console.csproj", "{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{EB249FAF-4532-4D5B-906F-C30C00974ACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB249FAF-4532-4D5B-906F-C30C00974ACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB249FAF-4532-4D5B-906F-C30C00974ACE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

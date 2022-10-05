@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Deedle" Version="2.5.0" />
+      <PackageReference Include="XPlot.Plotly" Version="4.0.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Realisierte_Erzeugung_202209250000_202210052359.csv" />
+      <Content Include="Realisierte_Erzeugung_202209250000_202210052359.csv">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+</Project>
