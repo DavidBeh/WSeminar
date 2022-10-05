@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Polly;
+using CacheTower.Providers.FileSystem;
+using CacheTower.Serializers.SystemTextJson;
 using WSeminar.V2G.Simulator.Server.Data;
 using WSeminar.V2G.Simulator.Server.Smard;
 
@@ -11,15 +10,27 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 
-var cachePolicy = Policy.CacheAsync(null,null);
 
-builder.Services.AddHttpClient<SmardClient>().AddPolicyHandler().AddTransientHttpErrorPolicy(policyBuilder =>
-    policyBuilder.WaitAndRetryAsync(new[]
+
+builder.Services.AddHttpClient<SmardClient>();
+
+builder.Services.AddCacheStack(stackBuilder =>
+{
+    stackBuilder.AddMemoryCacheLayer();
+    var path = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.InternetCache)), "WSeminar.V2G.Simulator.Server", "Cache");
+    try
     {
-        TimeSpan.FromSeconds(1),
-        TimeSpan.FromSeconds(5),
-        TimeSpan.FromSeconds(10)
-    }));
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+    catch (Exception e)
+    {
+        // ignored
+    }
+    
+    Directory.CreateDirectory(path);
+    stackBuilder.AddFileCacheLayer(new FileCacheLayerOptions(path, SystemTextJsonCacheSerializer.Instance));
+});
 
 var app = builder.Build();
 

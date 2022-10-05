@@ -1,18 +1,21 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Dynamic;
+using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Deedle;
+using Microsoft.Data.Analysis;
 
-Energy.EnergySource s = Energy.EnergySource.Conventional | Energy.EnergySource.Water;
 
-var n = s switch
-{
-    Energy.EnergySource.Conventional => 2,
-    _ => 0,
-};
 
-Console.WriteLine(n);
+var s = Enumerable.Range(0, 5).Select(i =>  KeyValuePair.Create(i, (int?)(i % 2 == 0 ? i : null))).ToSeries();
+s.Print();
+var s1 = Enumerable.Range(3, 5).Select(i =>  KeyValuePair.Create(i, (int?)i)).ToSeries();
+s1.Print();
+var left = s.Zip(s1, JoinKind.);
+left.Print();
+
 
 class Energy
 {

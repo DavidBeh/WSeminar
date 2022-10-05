@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using System.Diagnostics
+@using Deedle
 @using WSeminar.V2G.Simulator.Server.Smard
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Nav
@@ -43,7 +44,7 @@ Welcome to your new app.
 
 @if (_lastProductionData != null)
 {
-    var options = new ApexChartOptions<SeriesItem>()
+    var options = new ApexChartOptions<BoxPair>()
     {
         
         Xaxis = new XAxis()
@@ -71,6 +72,7 @@ Welcome to your new app.
         }
     };
 
+    @*
     var l = _lastProductionData
         .SelectMany(pair =>
             pair.Value.Select(item => (EnergySource: pair.Key, SeriesItem: item)));
@@ -81,24 +83,25 @@ Welcome to your new app.
                 tuples.Key,
                 tuples.Aggregate(0m, (i, tuple) => i + (tuple.SeriesItem.Value ?? 0)),
                 tuples.First().SeriesItem.Resolution));
-    
-    <ApexChart @ref="_chartRef" TItem="SeriesItem" Options="options">
+    *@
+    <ApexChart @ref="_chartRef" TItem="BoxPair" Options="options">
 
+        @*
         <ApexPointSeries SeriesType="SeriesType.Line"
                          TItem="SeriesItem" Items="@sum"
                          XValue="item => item.Time"
                          YValue="item => item.Value">
 
-        </ApexPointSeries>
+        </ApexPointSeries> *@
 
         @foreach (var (energy, values) in _lastProductionData)
         {
-            <ApexPointSeries TItem="SeriesItem"
-                             Items="values"
+            <ApexPointSeries TItem="BoxPair"
+                             Items="values.ObservationsAll.Select(pair => new BoxPair(pair))"
                              SeriesType="SeriesType.Area"
                              Name="@energy.ToString()"
-                             XValue="item => item.Time"
-                             YValue="item => item.Value">
+                             XValue="item => item.Key"
+                             YValue="(item => (decimal?) item.Value)">
             </ApexPointSeries>
         }
 
@@ -115,12 +118,13 @@ Welcome to your new app.
     
     public string? TestValue { get; set; }
 
-    private ApexChart<SeriesItem>? _chartRef;
+    private ApexChart<BoxPair>? _chartRef;
 
-    private Dictionary<EnergySource, List<SeriesItem>>? _lastProductionData;
+    private Dictionary<EnergySourceId, Series<DateTimeOffset, double?>> _lastProductionData;
 
     protected override void OnInitialized()
     {
+        
         SetYesterday();
         SetOneWeek();
     }
@@ -154,24 +158,26 @@ Welcome to your new app.
         var s = Stopwatch.StartNew();
         
         var vals
-            = await Client.GetProduction(EnergySource.All, DataResolution.Hour, StartDate, EndDate);
+            = await Client.GetProduction(EnergySourceId.All, DataResolution.Hour, StartDate, EndDate);
         
         s.Stop();
         _lastProductionData = vals;
 
 
-    //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
-    //StateHasChanged();
-    //await Task.Delay(1000);
+        //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
+        //StateHasChanged();
+        //await Task.Delay(1000);
 
-        Logger.LogInformation("Fetched Entries ({Count})", _lastProductionData.First().Value.Count);
-
+        Logger.LogInformation("Fetched Entries ({Count})", _lastProductionData.First().Value.KeyCount);
         if (_chartRef != null)
         {
             Logger.LogInformation("Updating Series");
             StateHasChanged();
     //await Task.Delay(3000);
+            
             await _chartRef.UpdateSeriesAsync();
+            await _chartRef.UpdateSeriesAsync();
+
         }
         
         Logger.LogInformation(s.Elapsed.ToString());

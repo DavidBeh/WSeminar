@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using ApexCharts;
+using CacheTower;
+using Deedle;
 
 // ReSharper disable InconsistentNaming
 
@@ -12,57 +14,80 @@ namespace WSeminar.V2G.Simulator.Server.Smard;
 public class SmardClient
 {
     private readonly HttpClient _httpClient;
+    private readonly ICacheStack _cache;
+    private readonly ILogger<SmardClient> _logger;
 
-    public SmardClient(HttpClient c)
+    public SmardClient(HttpClient c, ICacheStack cache, ILogger<SmardClient> logger)
     {
         _httpClient = c;
+        _cache = cache;
+        _logger = logger;
         _httpClient.BaseAddress = new Uri("https://www.smard.de/app/chart_data/");
     }
 
     public async Task<List<DateTimeOffset>> GetIndex(int filter, DataResolution resolution)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{filter}/DE/index_{resolution.ToSmardString()}.json");
-        var res = await _httpClient.SendAsync(request);
-        if (!res.IsSuccessStatusCode)
+        var request = $"{filter}/DE/index_{resolution.ToSmardString()}.json";
+        var data = await FetchData(request);
+
+        if (data is null)
         {
-            throw new HttpRequestException("Error code returned from Smard api: " + res.ToString());
+            return new List<DateTimeOffset>();
         }
 
-        var json = await res.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = JsonSerializer.Deserialize<JsonDocument>(data);
 
         return json!.RootElement.GetProperty("timestamps").EnumerateArray().Select(element =>
             DateTimeOffset.FromUnixTimeMilliseconds(element.GetInt64())).ToList();
     }
 
-    public async Task<Dictionary<DateTimeOffset, decimal?>> GetSeries(int filter, DataResolution resolution,
+    private async Task<string?> FetchData(string request)
+    {
+        var data = await _cache.GetOrSetAsync<string>(request, async i =>
+        {
+            HttpResponseMessage? message = null;
+            try
+            {
+                message = await _httpClient.GetAsync(request);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while fetching data from Smard");
+            }
+
+            return message?.IsSuccessStatusCode is null or false ? "" : await message.Content.ReadAsStringAsync();
+        }, new CacheSettings(TimeSpan.FromHours(1)));
+        return data;
+    }
+
+    public async Task<Series<DateTimeOffset, double?>> GetSeries(int filter, DataResolution resolution,
         DateTimeOffset offset)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get,
-            $"{filter}/DE/{filter}_DE_{resolution.ToSmardString()}_{offset.ToUnixTimeMilliseconds()}.json");
-        var res = await _httpClient.SendAsync(request);
-        if (!res.IsSuccessStatusCode)
+        var request = $"{filter}/DE/{filter}_DE_{resolution.ToSmardString()}_{offset.ToUnixTimeMilliseconds()}.json";
+        var data = await FetchData(request);
+
+        if (data is null)
         {
-            throw new HttpRequestException("Error code returned from Smard api: " + res.ToString());
+            return new SeriesBuilder<DateTimeOffset, double?>().Series;
         }
 
-        var json = await res.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = JsonSerializer.Deserialize<JsonDocument>(data);
 
         return json!.RootElement.GetProperty("series").EnumerateArray().ToDictionary(
             element => DateTimeOffset.FromUnixTimeMilliseconds(element[0].GetInt64()), element =>
             {
                 if (element[1].ValueKind == JsonValueKind.Null)
                 {
-                    return (decimal?)null;
+                    return (double?)null;
                 }
 
-                return element[1].GetDecimal();
-            });
+                return element[1].GetDouble();
+            }).ToSeries();
     }
 
-    public async Task<IEnumerable<SeriesItem>> GetSeriesRange(int filter, DataResolution resolution,
+    public async Task<Series<DateTimeOffset, double?>> GetSeriesRange(int filter, DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
     {
-        
         Console.WriteLine("FILTER: " + filter);
         var index = await GetIndex(filter, resolution);
         index.Add(DateTimeOffset.MaxValue);
@@ -79,8 +104,8 @@ public class SmardClient
         var tasks = timesToRequest.Select(time => GetSeries(filter, resolution, time.begin));
         var results = await Task.WhenAll(tasks);
 
-        return results.SelectMany(dict => dict).Where(pair => pair.Key >= start && pair.Key < end)
-            .Select(pair => new SeriesItem(pair.Key, pair.Value, resolution));
+        return results.Aggregate((series, series1) => series.Merge(series1, UnionBehavior.PreferLeft))
+            .Where(pair => pair.Key >= start && pair.Key < end);
     }
 
 
@@ -92,8 +117,8 @@ public class SmardClient
     /// <param name="start"></param>
     /// <param name="end"></param>
     /// <returns>Returns a dictionary with the EnergySource as key and Dictionaries containing time and value as value in MWh</returns>
-    public async Task<Dictionary<EnergySource, List<SeriesItem>>> GetProduction(
-        EnergySource sources,
+    public async Task<Dictionary<EnergySourceId, Series<DateTimeOffset, double?>>> GetProduction(
+        EnergySourceId sources,
         DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
     {
@@ -104,67 +129,7 @@ public class SmardClient
         return
             tuples.ToDictionary(
                 t => t.EnergySource, // Key (EnergySource)
-                t => t.Task.Result.ToList()); // Value (List of SeriesItems)
-    }
-
-
-
-
-    [Flags]
-    public enum Filter
-    {
-        Installed_Bio = 189,
-        Installed_Water = 3792,
-        Installed_WindOffshore = 4076,
-        Installed_WindOnshore = 186,
-        Installed_Solar = 188,
-        Installed_OtherRenewable = 194,
-        Installed_Nuclear = 4073,
-        Installed_BrownCoal = 4072,
-        Installed_StoneCoal = 4075,
-        Installed_Gas = 198,
-        Installed_Pump = 4074,
-        Installed_OtherFossil = 207,
-
-        Production_Bio = 4066,
-        Production_Water = 1226,
-        Production_WindOffshore = 1225,
-        Production_WindOnshore = 4067,
-        Production_Solar = 4068,
-        Production_OtherRenewable = 1228,
-        Production_Nuclear = 1224,
-        Production_BrownCoal = 1223,
-        Production_StoneCoal = 4069,
-        Production_Gas = 4071,
-        Production_Pump = 4070,
-        Production_Other = 1227,
-
-        Consumption_All = 410,
-        Consumption_Residual = 4359,
-        Consumption_Pump = 4387,
-    }
-
-    [Flags]
-    public enum FilterGroup
-    {
-        Installed = 0,
-        Production = 1 << 0,
-        Consumption = 1 << 1,
-
-        Bio = 1 << 2,
-        Water = 1 << 3,
-        WindOffshore = 1 << 4,
-        WindOnshore = 1 << 5,
-        Solar = 1 << 6,
-        OtherRenewable = 1 << 7,
-        Nuclear = 1 << 8,
-        BrownCoal = 1 << 9,
-        StoneCoal = 1 << 10,
-        Gas = 1 << 11,
-        Pump = 1 << 12,
-        OtherFossil = 1 << 13,
-
-        Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | OtherRenewable,
+                t => t.Task.Result); // Value (List of SeriesItems)
     }
 }
 
@@ -178,25 +143,80 @@ public enum DataResolution
     Year
 }
 
-[Flags]
-public enum EnergySource
+public interface ProductionUnit
 {
-    Bio = 1 << 0,
-    Water = 1 << 1,
-    WindOffshore = 1 << 2,
-    WindOnshore = 1 << 3,
-    Solar = 1 << 4,
-    OtherRenewable = 1 << 5,
-    Nuclear = 1 << 6,
-    BrownCoal = 1 << 7,
-    HardCoal = 1 << 8,
-    Gas = 1 << 9,
-    PumpedHydro = 1 << 10,
-    OtherFossil = 1 << 11,
+}
 
-    All = Bio | Water | WindOffshore | WindOnshore | Solar | OtherRenewable | Nuclear | BrownCoal | HardCoal | Gas | PumpedHydro | OtherFossil,
+public interface ConsumptionUnit
+{
+}
+
+public interface InstalledUnit
+{
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Production : Attribute
+{
+    public Production(int dataId)
+    {
+        DataId = dataId;
+    }
+
+    public readonly int DataId;
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Consumption : Attribute
+{
+    public Consumption(int dataId)
+    {
+        DataId = dataId;
+    }
+
+    public readonly int DataId;
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Installed : Attribute
+{
+    public Installed(int dataId)
+    {
+        DataId = dataId;
+    }
+
+    public readonly int DataId;
+}
+
+[Flags]
+public enum EnergySourceId
+{
+    [Production(4066), Installed(189)] // Same as in GetProductionId()
+    Bio = 1 << 0,
+    [Production(1226), Installed(3792)] Water = 1 << 1,
+    [Production(1225), Installed(4076)] WindOffshore = 1 << 2,
+    [Production(4067), Installed(186)] WindOnshore = 1 << 3,
+    [Production(4068), Installed(188)] Solar = 1 << 4,
+    [Production(1228), Installed(194)] OtherRenewable = 1 << 5,
+    [Production(1224), Installed(4073)] Nuclear = 1 << 6,
+    [Production(1223), Installed(4072)] BrownCoal = 1 << 7,
+    [Production(4069), Installed(4075)] HardCoal = 1 << 8,
+    [Production(4071), Installed(198)] Gas = 1 << 9,
+    [Production(4070), Installed(4074)] PumpedHydro = 1 << 10,
+    [Production(1227), Installed(207)] OtherFossil = 1 << 11,
+
+    All = Bio | Water | WindOffshore | WindOnshore | Solar | OtherRenewable | Nuclear | BrownCoal | HardCoal | Gas |
+          PumpedHydro | OtherFossil,
     Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | PumpedHydro,
     Conventional = Nuclear | BrownCoal | HardCoal | Gas
+}
+
+[Flags]
+public enum ConsumptionId
+{
+    [Consumption(410)] All = 1 << 0,
+    [Consumption(4359)] Residual = 1 << 1,
+    [Consumption(4387)] PumpedHydro = 1 << 2,
 }
 
 public class SeriesItem
@@ -205,66 +225,70 @@ public class SeriesItem
     public readonly decimal? Value;
     public readonly DataResolution Resolution;
 
+
+    private const int a = 3;
+    private const int b = 4;
+    private const int c = a + b;
+
     public SeriesItem(DateTimeOffset time, decimal? value, DataResolution resolution)
     {
         Time = time;
         Value = value;
         Resolution = resolution;
     }
+
+    public SeriesItem(SeriesItem item)
+    {
+        Time = item.Time;
+        Value = item.Value;
+        Resolution = item.Resolution;
+    }
 }
 
 public static class SmardEnumHelpers
 {
-    public static SmardClient.FilterGroup[] GetGroups(this SmardClient.Filter filter)
+    public static IEnumerable<EnergySourceId> GetEnergySourceFlags(this EnergySourceId source)
     {
-        var f = filter | SmardClient.Filter.Consumption_All;
-        var filterName = filter.ToString();
-        var filterGroup = filterName.Split('_')[0];
-        return Enum.GetValues<SmardClient.FilterGroup>().Where(fg => fg.ToString() == filterGroup).ToArray();
-    }
-
-    public static IEnumerable<EnergySource> GetEnergySourceFlags(this EnergySource source)
-    {
-        return Enum.GetValues<EnergySource>()
+        return Enum.GetValues<EnergySourceId>()
             .Where(energySource => energySource.GetFlags().Count() == 1 && source.HasFlag(energySource));
     }
 
     public static IEnumerable<T> GetFlags<T>(this T e) where T : System.Enum
         => e.GetType().GetEnumValues().Cast<T>().Where(o => e.HasFlag(o));
 
-    public static int GetProductionId(this EnergySource source) =>
+    public static int GetProductionId(this EnergySourceId source) =>
         source switch
         {
-            EnergySource.Bio => 4066,
-            EnergySource.Water => 1226,
-            EnergySource.WindOffshore => 1225,
-            EnergySource.WindOnshore => 4067,
-            EnergySource.Solar => 4068,
-            EnergySource.OtherRenewable => 1228,
-            EnergySource.Nuclear => 1224,
-            EnergySource.BrownCoal => 1223,
-            EnergySource.HardCoal => 4069,
-            EnergySource.Gas => 4071,
-            EnergySource.PumpedHydro => 4070,
-            EnergySource.OtherFossil => 1227,
+            EnergySourceId.Bio => 4066,
+            EnergySourceId.Water => 1226,
+            EnergySourceId.WindOffshore => 1225,
+            EnergySourceId.WindOnshore => 4067,
+            EnergySourceId.Solar => 4068,
+            EnergySourceId.OtherRenewable => 1228,
+            EnergySourceId.Nuclear => 1224,
+            EnergySourceId.BrownCoal => 1223,
+            EnergySourceId.HardCoal => 4069,
+            EnergySourceId.Gas => 4071,
+            EnergySourceId.PumpedHydro => 4070,
+            EnergySourceId.OtherFossil => 1227,
             _ => throw new IndexOutOfRangeException(
                 "Invalid EnergySource. Bitflags are not supported. Use GetEnergySourceFlags() before calling this method."),
         };
 
-    private static int GetInstalledId(this EnergySource source) => source switch
+    private static int GetInstalledId(this EnergySourceId source) => source switch
     {
-        EnergySource.Bio => 189,
-        EnergySource.Water => 3792,
-        EnergySource.WindOffshore => 4076,
-        EnergySource.WindOnshore => 186,
-        EnergySource.Solar => 188,
-        EnergySource.OtherRenewable => 194,
-        EnergySource.Nuclear => 4073,
-        EnergySource.BrownCoal => 4072,
-        EnergySource.HardCoal => 4075,
-        EnergySource.Gas => 198,
-        EnergySource.PumpedHydro => 4074,
-        EnergySource.OtherFossil => 207,
+        EnergySourceId.Bio => 189,
+        EnergySourceId.Water => 3792,
+        EnergySourceId.WindOffshore => 4076,
+        EnergySourceId.WindOnshore => 186,
+        EnergySourceId.Solar => 188,
+        EnergySourceId.OtherRenewable => 194,
+        EnergySourceId.Nuclear => 4073,
+        EnergySourceId.BrownCoal => 4072,
+        EnergySourceId.HardCoal => 4075,
+        EnergySourceId.Gas => 198,
+        EnergySourceId.PumpedHydro => 4074,
+        EnergySourceId.OtherFossil => 207,
         _ => throw new IndexOutOfRangeException(
             "Invalid EnergySource. Bitflags are not supported. Use GetEnergySourceFlags() before calling this method."),
     };

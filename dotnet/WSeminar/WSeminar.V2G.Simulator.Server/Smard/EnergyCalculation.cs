@@ -4,13 +4,13 @@ namespace WSeminar.V2G.Simulator.Server.Smard;
 
 public class EnergyCalculation
 {
-    private Dictionary<EnergySource, SeriesItem> _production;
+    private Dictionary<EnergySourceId, SeriesItem> _production;
     private readonly IEnumerable<SeriesItem> _consumption;
-    private readonly Dictionary<EnergySource, SeriesItem> _installed;
+    private readonly Dictionary<EnergySourceId, SeriesItem> _installed;
     
     
 
-    public EnergyCalculation(Dictionary<EnergySource, SeriesItem> production, IEnumerable<SeriesItem> consumption, Dictionary<EnergySource, SeriesItem> installed, DataResolution? resolution = null)
+    public EnergyCalculation(Dictionary<EnergySourceId, SeriesItem> production, IEnumerable<SeriesItem> consumption, Dictionary<EnergySourceId, SeriesItem> installed, DataResolution? resolution = null)
     {
         
         _production = production;
