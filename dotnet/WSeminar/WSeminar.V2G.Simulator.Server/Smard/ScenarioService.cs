@@ -24,15 +24,36 @@ public class ScenarioResult
     public Dictionary<EnergySourceId, Series<DateTimeOffset, double?>> Produced;
     //public Series<DateTimeOffset, double?> ProducedSum;
 
-    public Series<DateTimeOffset, double?> Solar { get; set; }
-    public Series<DateTimeOffset, double?> OnShore { get; set; }
-    public Series<DateTimeOffset, double?> OffShore { get; set; }
-    public Series<DateTimeOffset, double?> OtherRenewable { get; set; }
-    public Series<DateTimeOffset, double?> ConsumedEletricity { get; set; }
+    public Series<DateTimeOffset, double> Solar { get; set; }
+    public Series<DateTimeOffset, double> OnShore { get; set; }
+    public Series<DateTimeOffset, double> OffShore { get; set; }
+    public Series<DateTimeOffset, double> OtherRenewable { get; set; }
+    public Series<DateTimeOffset, double> ConsumedEletricity { get; set; }
 
     public Series<DateTimeOffset, double> StoredDelta { get; set; }
     public Series<DateTimeOffset, double> StoredPower { get; set; }
-    public Series<DateTimeOffset, double?> Consumption { get; set; }
+    public Series<DateTimeOffset, double> Consumption { get; set; }
+}
+
+public enum CalculationColumn
+{
+    Production_Solar,
+    Production_OnShore,
+    Production_OffShore,
+    Production_OtherRenewable,
+    
+    Consumption,
+    
+    Display_Solar,
+    Display_OnShore,
+    Display_OffShore,
+    Display_OtherRenewable,
+    
+    Display_Fossil,
+    
+    Overproduction,
+    Display_Overproduction,
+    
 }
 
 public class ScenarioService
@@ -47,40 +68,67 @@ public class ScenarioService
 
     public async Task<ScenarioResult> Calculate(ScenarioInput input)
     {
-        ScenarioResult result = new ScenarioResult();
+        var fr = Frame.CreateEmpty<DateTimeOffset, CalculationColumn>();
         
+        ScenarioResult result = new ScenarioResult();
+
         var produced = await _client.GetProductions(EnergySourceId.Renewable, input.Resolution, input.Start, input.End);
+        
+        fr.AddColumn(CalculationColumn.Production_OtherRenewable, produced[EnergySourceId.OtherRenewable]);
+        fr.AddColumn(CalculationColumn.Production_OffShore, produced[EnergySourceId.WindOffshore].SelectValues(d => d * input.WindFactor));
+        fr.AddColumn(CalculationColumn.Production_OnShore, produced[EnergySourceId.WindOnshore].SelectValues(d => d * input.WindFactor));
+        fr.AddColumn(CalculationColumn.Production_Solar, produced[EnergySourceId.Solar].SelectValues(d => d * input.SolarFactor));
+        fr.FillMissing(0);
 
-        result.Solar = produced[EnergySourceId.Solar].SelectValues(d => d == null ? null : d * input.SolarFactor);
+        var sum = fr.Columns.Observations.Select(pair => pair.Value.As<double>())
+            .Aggregate((series, series1) => series + series1);
+        
+        
+        /*
+        result.Solar = produced[EnergySourceId.Solar].SelectAllValues(d => (d ?? 0) * input.SolarFactor);
         result.OffShore = produced[EnergySourceId.WindOffshore]
-            .SelectValues(d => d == null ? null : d * input.WindFactor);
+            .SelectAllValues(d => (d ?? 0) * input.WindFactor);
         result.OnShore = produced[EnergySourceId.WindOnshore]
-            .SelectValues(d => d == null ? null : d * input.WindFactor);
-        result.OtherRenewable = produced
-            .Where(pair =>
+            .SelectAllValues(d => (d ?? 0) * input.WindFactor);
+        result.OtherRenewable = produced.Where(pair =>
                 pair.Key is EnergySourceId.OtherRenewable or EnergySourceId.Water or EnergySourceId.PumpedHydro)
-            .Select(pair => pair.Value)
-            .Aggregate((series, series1) => series.Zip(series1)
-                .SelectValues(pair => pair.Item1.OrDefault(0) + pair.Item2.OrDefault(0)));
+            .Select(pair => pair.Value.FillMissing2())
+            .Aggregate((series, series1) => series + series1);
+*/
+        var consumption = (await _client.GetConsumption(input.Resolution, input.Start, input.End)).FillMissing2();
+        
+        result.Consumption = consumption;
+        fr.AddColumn(CalculationColumn.Consumption, consumption);
 
-        result.Consumption = await _client.GetConsumption(input.Resolution, input.Start, input.End);
+        fr.AddColumn(CalculationColumn.Display_OtherRenewable, fr.Rows.SelectValues(series => Math.Max(
+            Math.Min(series.GetAs<double>(CalculationColumn.Production_OtherRenewable), series.GetAs<double>(CalculationColumn.Consumption)),0)));
+        fr.AddColumn(CalculationColumn.Display_OnShore, fr.Rows.SelectValues(series => Math.Max(
+            Math.Min(series.GetAs<double>(CalculationColumn.Production_OtherRenewable) + series.GetAs<double>(CalculationColumn.Production_OnShore), series.GetAs<double>(CalculationColumn.Consumption) - series.GetAs<>() ),0)));
+        fr.AddColumn(CalculationColumn.Display_OtherRenewable, fr.Rows.SelectValues(series => Math.Max(
+            Math.Min(series.GetAs<double>(CalculationColumn.Production_OtherRenewable), series.GetAs<double>(CalculationColumn.Consumption)),0)));
+        fr.AddColumn(CalculationColumn.Display_OtherRenewable, fr.Rows.SelectValues(series => Math.Max(
+            Math.Min(series.GetAs<double>(CalculationColumn.Production_OtherRenewable), series.GetAs<double>(CalculationColumn.Consumption)),0)));
+        
+        
+        var renewableCombined =
+            new[] { result.Solar, result.OffShore, result.OnShore, result.OtherRenewable }.Aggregate(
+                (series, series1) => series + series1);
 
-        var renewableCombined = new[] { result.Solar, result.OffShore, result.OnShore, result.OtherRenewable }.Aggregate(
-            (series, series1) =>
-                series.Zip(series1).SelectValues(tuple => tuple.Item1.OrDefault(0) + tuple.Item2.OrDefault(0))).SelectAllValues(d => d??0);
+        var overproduction = renewableCombined.Zip(result.Consumption)
+            .SelectValues(tuple => tuple.Item1.OrDefault(0) - tuple.Item2.OrDefault(0)).FillMissing();
 
-        var overproduction = renewableCombined.Zip(result.Consumption).SelectValues(tuple => tuple.Item1.OrDefault(0) - tuple.Item2.OrDefault(0));
-
+        
+        
         var storedBuilder = new SeriesBuilder<DateTimeOffset, double>();
         var powerBuilder = new SeriesBuilder<DateTimeOffset, double>();
         double stored = 0;
-        foreach (var (time, cap) in overproduction.SelectAllValues(d => d??0).Observations)
+        foreach (var (time, cap) in overproduction.Observations)
         {
-            var deltaUncapped = Math.Clamp(stored+cap, 0, input.BatteryCapacity * input.BatteryCount) - stored;
+            var deltaUncapped = Math.Clamp(stored + cap, 0, input.BatteryCapacity * input.BatteryCount) - stored;
             powerBuilder.Add(time, deltaUncapped / input.Resolution.ToTimeSpan().TotalHours);
             storedBuilder.Add(time, stored + deltaUncapped);
         }
-        
+
         result.StoredDelta = storedBuilder.Series;
         result.StoredPower = powerBuilder.Series;
 
@@ -91,6 +139,12 @@ public class ScenarioService
                 series.Zip(series1).SelectValues(tuple => tuple.Item1.OrDefault(0) + tuple.Item2.OrDefault(0)));
         */
     }
+
+    private static Series<DateTimeOffset, double> CalculateDisplay(Frame<DateTimeOffset,CalculationColumn> fra, CalculationColumn display, params CalculationColumn[] columns)
+    {
+        var before = columns.Skip(1).Select(fra.Rows.Where(pair => pair.k))
+    }
+
 }
 
 

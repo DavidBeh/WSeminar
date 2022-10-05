@@ -47,7 +47,6 @@ Welcome to your new app.
 {
     var options = new ApexChartOptions<BoxPair>()
     {
-        
         Xaxis = new XAxis()
         {
             Min = StartDate.AddHours(-1).ToUnixTimeMilliseconds(),
@@ -95,14 +94,50 @@ Welcome to your new app.
 
         </ApexPointSeries> *@
 
+        <ApexPointSeries
+            TItem="BoxPair"
+            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            SeriesType="SeriesType.Area"
+            Name="Andere Erneuerbare"
+            XValue="pair => pair.Key"
+            YValue="pair => (decimal?) pair.Value">
+        </ApexPointSeries>
+        
+        <ApexPointSeries
+            TItem="BoxPair"
+            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            SeriesType="SeriesType.Area"
+            Name="Andere Erneuerbare"
+            XValue="pair => pair.Key"
+            YValue="pair => (decimal?) pair.Value">
+        </ApexPointSeries>
+        
+        <ApexPointSeries
+            TItem="BoxPair"
+            Items="(_scenarioResult.OtherRenewable + _scenarioResult.Solar).Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            SeriesType="SeriesType.Area"
+            Name="Andere Erneuerbare"
+            XValue="pair => pair.Key"
+            YValue="pair => (decimal?) pair.Value">
+        </ApexPointSeries>
+        
+        <ApexPointSeries
+            TItem="BoxPair"
+            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            SeriesType="SeriesType.Scatter"
+            Name="Andere Erneuerbare"
+            XValue="pair => pair.Key"
+            YValue="pair => (decimal?) pair.Value">
+        </ApexPointSeries>
+        
 
         <ApexPointSeries TItem="BoxPair"
-                             Items="_scenarioResult.Consumption.Observations.Select(pair => new BoxPair(pair))"
-                             SeriesType="SeriesType.Area"
-                             Name="Verbrauch"
-                             XValue="item => item.Key"
-                             YValue="(item => (decimal?) item.Value)">
-            </ApexPointSeries>
+                         Items="_scenarioResult.Consumption.Observations.Select(pair => new BoxPair(pair))"
+                         SeriesType="SeriesType.Area"
+                         Name="Verbrauch"
+                         XValue="item => item.Key"
+                         YValue="(item => (decimal?)item.Value)">
+        </ApexPointSeries>
 
 
     </ApexChart>
@@ -113,22 +148,27 @@ Welcome to your new app.
 
     public DateTimeOffset StartDate { get; set; }
     private DateTimeOffset DisplayedEndDate { get; set; }
-    public DateTimeOffset EndDate { get => DisplayedEndDate.AddDays(1); set => DisplayedEndDate = value.AddDays(-1); }
-    
+
+    public DateTimeOffset EndDate
+    {
+        get => DisplayedEndDate.AddDays(1);
+        set => DisplayedEndDate = value.AddDays(-1);
+    }
+
     public string? TestValue { get; set; }
 
     private ApexChart<BoxPair>? _chartRef;
 
     private ScenarioResult? _scenarioResult;
-    
+
     private Dictionary<EnergySourceId, Series<DateTimeOffset, double?>> _lastProductionData;
 
     protected override void OnInitialized()
     {
-        
         SetYesterday();
         SetOneWeek();
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
@@ -169,17 +209,17 @@ Welcome to your new app.
             SolarFactor = 1,
             WindFactor = 1,
         };
-        
+
         var result = await ScenarioService.Calculate(scenario);
-        
+
         s.Stop();
         Logger.LogInformation("{Elapsed}ms", s.ElapsedMilliseconds);
 
         _scenarioResult = result;
 
-        //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
-        //StateHasChanged();
-        //await Task.Delay(1000);
+    //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
+    //StateHasChanged();
+    //await Task.Delay(1000);
 
         Logger.LogInformation("Fetched Entries ({Count})", result.Consumption.KeyCount);
         if (_chartRef != null)
@@ -192,8 +232,6 @@ Welcome to your new app.
             await _chartRef.UpdateSeriesAsync(false);
             await _chartRef.UpdateOptionsAsync(true, false, true);
         }
-        
-        
     }
 
     private void SetOneWeek()
