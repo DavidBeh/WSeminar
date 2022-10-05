@@ -5,6 +5,7 @@
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Nav
 @inject SmardClient Client
+@inject ScenarioService ScenarioService
 @inject ILogger<Index> Logger
 <PageTitle>Index</PageTitle>
 
@@ -42,7 +43,7 @@ Welcome to your new app.
     </div>
 </div>
 
-@if (_lastProductionData != null)
+@if (_scenarioResult != null)
 {
     var options = new ApexChartOptions<BoxPair>()
     {
@@ -94,16 +95,14 @@ Welcome to your new app.
 
         </ApexPointSeries> *@
 
-        @foreach (var (energy, values) in _lastProductionData)
-        {
-            <ApexPointSeries TItem="BoxPair"
-                             Items="values.ObservationsAll.Select(pair => new BoxPair(pair))"
+
+        <ApexPointSeries TItem="BoxPair"
+                             Items="_scenarioResult.Consumption.Observations.Select(pair => new BoxPair(pair))"
                              SeriesType="SeriesType.Area"
-                             Name="@energy.ToString()"
+                             Name="Verbrauch"
                              XValue="item => item.Key"
                              YValue="(item => (decimal?) item.Value)">
             </ApexPointSeries>
-        }
 
 
     </ApexChart>
@@ -120,6 +119,8 @@ Welcome to your new app.
 
     private ApexChart<BoxPair>? _chartRef;
 
+    private ScenarioResult? _scenarioResult;
+    
     private Dictionary<EnergySourceId, Series<DateTimeOffset, double?>> _lastProductionData;
 
     protected override void OnInitialized()
@@ -156,31 +157,42 @@ Welcome to your new app.
     private async Task Update()
     {
         var s = Stopwatch.StartNew();
+
+        var scenario = new ScenarioInput()
+        {
+            Start = StartDate,
+            End = EndDate,
+            Resolution = DataResolution.QuarterHour,
+            BatteryCount = 50_000_000,
+            BatteryCapacity = 50_000,
+            MaxAllowedDrainFactor = 99,
+            SolarFactor = 1,
+            WindFactor = 1,
+        };
         
-        var vals
-            = await Client.GetProduction(EnergySourceId.All, DataResolution.Hour, StartDate, EndDate);
+        var result = await ScenarioService.Calculate(scenario);
         
         s.Stop();
-        _lastProductionData = vals;
+        Logger.LogInformation("{Elapsed}ms", s.ElapsedMilliseconds);
 
+        _scenarioResult = result;
 
         //_production = vals.First().Value.Select(item => new SeriesItem(item.Time, item.Time.DayOfWeek is DayOfWeek.Saturday ? null : item.Value, item.Resolution)).Where(item => item.Value != null).ToList();
         //StateHasChanged();
         //await Task.Delay(1000);
 
-        Logger.LogInformation("Fetched Entries ({Count})", _lastProductionData.First().Value.KeyCount);
+        Logger.LogInformation("Fetched Entries ({Count})", result.Consumption.KeyCount);
         if (_chartRef != null)
         {
             Logger.LogInformation("Updating Series");
             StateHasChanged();
     //await Task.Delay(3000);
-            
-            await _chartRef.UpdateSeriesAsync();
-            await _chartRef.UpdateSeriesAsync();
 
+            await _chartRef.ResetSeriesAsync(true, true);
+            await _chartRef.UpdateSeriesAsync(false);
+            await _chartRef.UpdateOptionsAsync(true, false, true);
         }
         
-        Logger.LogInformation(s.Elapsed.ToString());
         
     }
 

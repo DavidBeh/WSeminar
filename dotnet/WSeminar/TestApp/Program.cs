@@ -8,14 +8,23 @@ using Deedle;
 using Microsoft.Data.Analysis;
 
 
-
 var s = Enumerable.Range(0, 5).Select(i =>  KeyValuePair.Create(i, (int?)(i % 2 == 0 ? i : null))).ToSeries();
+var a = s.SelectAll(pair => pair.Value ?? 0);
+s.Print();
+a.Print();
+
 s.Print();
 var s1 = Enumerable.Range(3, 5).Select(i =>  KeyValuePair.Create(i, (int?)i)).ToSeries();
 s1.Print();
-var left = s.Zip(s1, JoinKind.);
-left.Print();
 
+public static class DeedleExtensions
+{
+    // Selects all Entries, including missing ones
+    public static Series<TKey, TValNew> SelectAll<TKey, TVal, TValNew>(this Series<TKey, TVal> series, Func<KeyValuePair<TKey, TVal?>, TValNew> func)
+    {
+        return series.SelectOptional(pair => OptionalValue.Create(func(new KeyValuePair<TKey, TVal?>(pair.Key, pair.Value.HasValue ? pair.Value.Value : default(TVal?)))));
+    }
+}
 
 class Energy
 {

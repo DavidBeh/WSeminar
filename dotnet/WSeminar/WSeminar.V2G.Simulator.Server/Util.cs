@@ -19,3 +19,29 @@ public class BoxPair
         Value = pair.Value.OrDefault(null);
     }
 }
+
+public static class DeedleExtensions
+{
+    // Selects all Entries, including missing ones
+    public static Series<TKey, TValNew> SelectAll<TKey, TVal, TValNew>(this Series<TKey, TVal> series, Func<KeyValuePair<TKey, TVal?>, TValNew> func)
+    {
+        return series.SelectOptional(pair => OptionalValue.Create(func(new KeyValuePair<TKey, TVal?>(pair.Key, pair.Value.HasValue ? pair.Value.Value : default(TVal?)))));
+    }
+    
+    public static Series<TKey, TValNew> SelectAllValues<TKey, TVal, TValNew>(this Series<TKey, TVal> series, Func<TVal?, TValNew> func)
+    {
+        return series.SelectOptional(pair => OptionalValue.Create(func(pair.Value.HasValue ? pair.Value.Value : default(TVal?))));
+    }
+    
+    
+}
+
+public static class CustomSeriesExtensions
+{
+    public static Series<T, OptionalValue<K>> AddMissingKeys<T, K>(this Series<T, K> series, T[] keys)
+        where T : IComparable<T>
+    {
+        var newKeys = keys.Union(series.Keys).OrderBy(comparable => comparable).ToList();
+        return new Series<T, OptionalValue<K>>(newKeys, keys.Select(series.TryGet));
+    }
+}

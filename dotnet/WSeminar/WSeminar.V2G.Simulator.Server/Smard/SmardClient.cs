@@ -117,7 +117,7 @@ public class SmardClient
     /// <param name="start"></param>
     /// <param name="end"></param>
     /// <returns>Returns a dictionary with the EnergySource as key and Dictionaries containing time and value as value in MWh</returns>
-    public async Task<Dictionary<EnergySourceId, Series<DateTimeOffset, double?>>> GetProduction(
+    public async Task<Dictionary<EnergySourceId, Series<DateTimeOffset, double?>>> GetProductions(
         EnergySourceId sources,
         DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
@@ -131,6 +131,16 @@ public class SmardClient
                 t => t.EnergySource, // Key (EnergySource)
                 t => t.Task.Result); // Value (List of SeriesItems)
     }
+    
+    public async Task<Series<DateTimeOffset, double?>> GetProduction(EnergySourceId source, DataResolution resolution, DateTimeOffset start, DateTimeOffset end)
+    {
+        return await GetSeriesRange(source.GetProductionId(), resolution, start, end);
+    }
+
+    public async Task<Series<DateTimeOffset, double?>> GetConsumption(DataResolution inputResolution, DateTimeOffset start, DateTimeOffset end)
+    {
+        return await GetSeriesRange(410, inputResolution, start, end);
+    }
 }
 
 public enum DataResolution
@@ -141,18 +151,6 @@ public enum DataResolution
     Week,
     Month,
     Year
-}
-
-public interface ProductionUnit
-{
-}
-
-public interface ConsumptionUnit
-{
-}
-
-public interface InstalledUnit
-{
 }
 
 [AttributeUsage(AttributeTargets.Field)]
@@ -297,4 +295,15 @@ public static class SmardEnumHelpers
 public static class FilterExtensions
 {
     public static string ToSmardString(this DataResolution resolution) => resolution.ToString().ToLower();
+
+    public static TimeSpan ToTimeSpan(this DataResolution resolution) => resolution switch
+    {
+        DataResolution.QuarterHour => TimeSpan.FromMinutes(15),
+        DataResolution.Hour => TimeSpan.FromHours(1),
+        DataResolution.Day => TimeSpan.FromDays(1),
+        DataResolution.Week => TimeSpan.FromDays(7),
+        DataResolution.Month => TimeSpan.FromDays(30),
+        DataResolution.Year => TimeSpan.FromDays(365),
+        _ => throw new ArgumentOutOfRangeException(nameof(resolution), resolution, null)
+    };
 }
