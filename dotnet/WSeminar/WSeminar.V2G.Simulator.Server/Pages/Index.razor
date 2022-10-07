@@ -132,8 +132,8 @@ Welcome to your new app.
         
 
         <ApexPointSeries TItem="BoxPair"
-                         Items="_scenarioResult.Consumption.Observations.Select(pair => new BoxPair(pair))"
-                         SeriesType="SeriesType.Area"
+                         Items="_scenarioResult.Frame[CalculationColumn.Consumption].Observations.Select(pair => new BoxPair(pair))"
+                         SeriesType="SeriesType.Line"
                          Name="Verbrauch"
                          XValue="item => item.Key"
                          YValue="(item => (decimal?)item.Value)">

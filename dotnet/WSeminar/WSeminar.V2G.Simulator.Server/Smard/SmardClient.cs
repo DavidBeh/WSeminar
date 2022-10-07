@@ -205,7 +205,7 @@ public enum EnergySourceId
 
     All = Bio | Water | WindOffshore | WindOnshore | Solar | OtherRenewable | Nuclear | BrownCoal | HardCoal | Gas |
           PumpedHydro | OtherFossil,
-    Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | PumpedHydro,
+    Renewable = Bio | Water | WindOffshore | WindOnshore | Solar | PumpedHydro | OtherRenewable,
     Conventional = Nuclear | BrownCoal | HardCoal | Gas
 }
 
