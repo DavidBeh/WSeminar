@@ -1,24 +1,34 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Dynamic;
-using System.Runtime.Intrinsics.X86;
+using System.Collections.Immutable;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Deedle;
-using Microsoft.Data.Analysis;
+
+var listA = Enumerable.Range(1, 10).ToDictionary(i => i, i => i);
+var listB = Enumerable.Range(6, 15).ToDictionary(i => i, i => i);
+var listC = Enumerable.Range(11, 20).ToDictionary(i => i, i => i);
 
 
-var s = Enumerable.Range(0, 5).Select(i =>  KeyValuePair.Create(i, (int?)(i % 2 == 0 ? i : null))).ToSeries();
-var a = s.SelectAll(pair => pair.Value ?? 0);
-s.Print();
-a.Print();
+var x = new[] { listA, listB, listC }.
 
-s.Print();
-var s1 = Enumerable.Range(3, 5).Select(i =>  KeyValuePair.Create(i, (int?)i)).ToSeries();
-s1.Print();
+var keys = new[] { listA, listB, listC }.SelectMany(dictionary => dictionary.Keys).Distinct().OrderBy(i => i).ToList();
+
+var n =
+    from k in keys
+    let a = listA.TryGetValue(k, out var aVal) ? aVal : null;
+
+
+
+
+n = n.DistinctBy(pair => pair.Key);
+
+var serialized = JsonSerializer.Serialize(n, new JsonSerializerOptions { WriteIndented = true });
+
+Console.WriteLine(serialized);
 
 public static class DeedleExtensions
 {
+
     // Selects all Entries, including missing ones
     public static Series<TKey, TValNew> SelectAll<TKey, TVal, TValNew>(this Series<TKey, TVal> series, Func<KeyValuePair<TKey, TVal?>, TValNew> func)
     {
