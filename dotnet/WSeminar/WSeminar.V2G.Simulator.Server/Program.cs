@@ -20,19 +20,26 @@ builder.Services.AddCacheStack(stackBuilder =>
 {
     
     stackBuilder.AddMemoryCacheLayer();
-    var path = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.InternetCache)), "WSeminar.V2G.Simulator.Server", "Cache");
-    try
+    var disableFileCache = true;
+    if (!disableFileCache)
     {
-        if (File.Exists(path))
-            File.Delete(path);
-    }
-    catch (Exception e)
-    {
-        // ignored
+        var path = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.InternetCache)), "WSeminar.V2G.Simulator.Server", "Cache");
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception e)
+        {
+            // ignored
+        }
+    
+        Directory.CreateDirectory(path);
+        stackBuilder.AddFileCacheLayer(new FileCacheLayerOptions(path, SystemTextJsonCacheSerializer.Instance));
     }
     
-    Directory.CreateDirectory(path);
-    stackBuilder.AddFileCacheLayer(new FileCacheLayerOptions(path, SystemTextJsonCacheSerializer.Instance));
+    
+
 });
 
 var app = builder.Build();

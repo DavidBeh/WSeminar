@@ -45,7 +45,7 @@ Welcome to your new app.
 
 @if (_scenarioResult != null)
 {
-    var options = new ApexChartOptions<BoxPair>()
+    var options = new ApexChartOptions<ScenarioRow>()
     {
         Xaxis = new XAxis()
         {
@@ -84,59 +84,62 @@ Welcome to your new app.
                 tuples.Aggregate(0m, (i, tuple) => i + (tuple.SeriesItem.Value ?? 0)),
                 tuples.First().SeriesItem.Resolution));
     *@
-    <ApexChart @ref="_chartRef" TItem="BoxPair" Options="options">
+    <ApexChart @ref="_chartRef" TItem="ScenarioRow" Options="options">
 
-        @*
-        <ApexPointSeries SeriesType="SeriesType.Line"
-                         TItem="SeriesItem" Items="@sum"
-                         XValue="item => item.Time"
-                         YValue="item => item.Value">
-
-        </ApexPointSeries> *@
 
         <ApexPointSeries
-            TItem="BoxPair"
-            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Line"
+            Name="Verbrauch"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.Consumption">
+        </ApexPointSeries>
+        
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
-            Name="Andere Erneuerbare"
-            XValue="pair => pair.Key"
-            YValue="pair => (decimal?) pair.Value">
+            Name="Solar (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplaySolar">
         </ApexPointSeries>
         
         <ApexPointSeries
-            TItem="BoxPair"
-            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
-            Name="Andere Erneuerbare"
-            XValue="pair => pair.Key"
-            YValue="pair => (decimal?) pair.Value">
+            Name="Residuallast"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)-Math.Min(pair.UnusedProduction, 0)">
         </ApexPointSeries>
-        
-        <ApexPointSeries
-            TItem="BoxPair"
-            Items="(_scenarioResult.OtherRenewable + _scenarioResult.Solar).Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
-            SeriesType="SeriesType.Area"
-            Name="Andere Erneuerbare"
-            XValue="pair => pair.Key"
-            YValue="pair => (decimal?) pair.Value">
-        </ApexPointSeries>
-        
-        <ApexPointSeries
-            TItem="BoxPair"
-            Items="_scenarioResult.OtherRenewable.Zip(_scenarioResult.Consumption).SelectAllValues(tuple => Math.Min(tuple!.Item1.ValueOrDefault, tuple.Item2.ValueOrDefault)).Observations.Select(pair => new BoxPair(pair))"
-            SeriesType="SeriesType.Scatter"
-            Name="Andere Erneuerbare"
-            XValue="pair => pair.Key"
-            YValue="pair => (decimal?) pair.Value">
-        </ApexPointSeries>
-        
 
-        <ApexPointSeries TItem="BoxPair"
-                         Items="_scenarioResult.Frame[CalculationColumn.Consumption].Observations.Select(pair => new BoxPair(pair))"
-                         SeriesType="SeriesType.Line"
-                         Name="Verbrauch"
-                         XValue="item => item.Key"
-                         YValue="(item => (decimal?)item.Value)">
+
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Wind Offshore (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplayOffShore">
+        </ApexPointSeries>
+
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Wind Onshore (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplayOnShore">
+        </ApexPointSeries>
+
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Andere Erneuerbare (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplayOtherRenewable">
         </ApexPointSeries>
 
 
@@ -157,7 +160,7 @@ Welcome to your new app.
 
     public string? TestValue { get; set; }
 
-    private ApexChart<BoxPair>? _chartRef;
+    private ApexChart<ScenarioRow>? _chartRef;
 
     private ScenarioResult? _scenarioResult;
 
@@ -202,7 +205,7 @@ Welcome to your new app.
         {
             Start = StartDate,
             End = EndDate,
-            Resolution = DataResolution.QuarterHour,
+            Resolution = DataResolution.Hour,
             BatteryCount = 50_000_000,
             BatteryCapacity = 50_000,
             MaxAllowedDrainFactor = 99,
@@ -221,7 +224,7 @@ Welcome to your new app.
     //StateHasChanged();
     //await Task.Delay(1000);
 
-        Logger.LogInformation("Fetched Entries ({Count})", result.Consumption.KeyCount);
+        Logger.LogInformation("Fetched Entries ({Count})", result.Rows.Count);
         if (_chartRef != null)
         {
             Logger.LogInformation("Updating Series");

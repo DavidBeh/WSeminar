@@ -12,7 +12,7 @@ public class BoxPair
         Key = pair.Key;
         Value = pair.Value;
     }
-    
+
     public BoxPair(KeyValuePair<DateTimeOffset, double> pair)
     {
         Key = pair.Key;
@@ -49,10 +49,33 @@ public static class DeedleExtensions
     {
         return series.SelectAllValues(val => val ?? value);
     }
-    
-    
-    
-    
+}
+
+public static class DictExtensions
+{
+    public static TValue? GetOr<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+    {
+        return dictionary.GetValueOrDefault(key, default!);
+    }
+
+    public static TVal Get0<TKey, TVal>(this IReadOnlyDictionary<TKey, TVal?> dictionary, TKey key)
+        where TVal : struct
+    {
+        return dictionary.TryGetValue(key, out var value) ? value ?? default : default;
+    }
+
+
+    public static TValue GetOr<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key,
+        TValue defaultValue)
+    {
+        if (dictionary == null)
+        {
+            throw new ArgumentNullException(nameof(dictionary));
+        }
+
+        TValue? value;
+        return dictionary.TryGetValue(key, out value) ? value : defaultValue;
+    }
 }
 
 public static class CustomSeriesExtensions

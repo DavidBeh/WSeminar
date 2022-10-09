@@ -2,6 +2,7 @@
 using System.Dynamic;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using System.Text.Json;
 using ApexCharts;
 using CacheTower;
@@ -16,6 +17,7 @@ public class SmardClient
     private readonly HttpClient _httpClient;
     private readonly ICacheStack _cache;
     private readonly ILogger<SmardClient> _logger;
+
 
     public SmardClient(HttpClient c, ICacheStack cache, ILogger<SmardClient> logger)
     {
@@ -52,6 +54,7 @@ public class SmardClient
             }
             catch (Exception e)
             {
+                await _cache.CleanupAsync();
                 _logger.LogError(e, "Error while fetching data from Smard");
             }
 
@@ -60,43 +63,49 @@ public class SmardClient
         return data;
     }
 
-    public async Task<Series<DateTimeOffset, double?>> GetSeries(int filter, DataResolution resolution,
+    public async Task<IEnumerable<KeyValuePair<DateTimeOffset, double?>>> GetSeries(int filter,
+        DataResolution resolution,
         DateTimeOffset offset)
     {
+        int retryCount = 0;
+        retry:
         var request = $"{filter}/DE/{filter}_DE_{resolution.ToSmardString()}_{offset.ToUnixTimeMilliseconds()}.json";
         var data = await FetchData(request);
 
-        if (data is null)
+        if (data is null && retryCount++ < 3)
         {
-            return new SeriesBuilder<DateTimeOffset, double?>().Series;
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            goto retry;
         }
+
+        if (data is null) throw new Exception("Could not fetch data from Smard");
 
         var json = JsonSerializer.Deserialize<JsonDocument>(data);
 
-        return json!.RootElement.GetProperty("series").EnumerateArray().ToDictionary(
-            element => DateTimeOffset.FromUnixTimeMilliseconds(element[0].GetInt64()), element =>
-            {
-                if (element[1].ValueKind == JsonValueKind.Null)
-                {
-                    return (double?)null;
-                }
-
-                return element[1].GetDouble();
-            }).ToSeries();
+        return json!.RootElement.GetProperty("series").EnumerateArray().Select(
+            element =>
+                new KeyValuePair<DateTimeOffset, double?>(DateTimeOffset.FromUnixTimeMilliseconds(element[0]
+                        .GetInt64()),
+                    element[1].ValueKind == JsonValueKind.Number
+                        ? element[1]
+                            .TryGetDouble(out var d)
+                            ? d
+                            : null
+                        : null));
     }
 
-    public async Task<Series<DateTimeOffset, double?>> GetSeriesRange(int filter, DataResolution resolution,
+    public async Task<Dictionary<DateTimeOffset, double?>> GetSeriesRange(int filter, DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
     {
         Console.WriteLine("FILTER: " + filter);
         var index = await GetIndex(filter, resolution);
-        index.Add(DateTimeOffset.MaxValue);
+        //index.Add(DateTimeOffset.MaxValue);
         /*
         index.Zip(index.Skip(1),
                 (offset, timeOffset) => (begin: offset, next: timeOffset)).ToList()
             .ForEach(tuple => Console.WriteLine(tuple));
         */
-        var timesToRequest = index.Zip(index.Skip(1),
+        var timesToRequest = index.Zip(index.Skip(1).Append(DateTimeOffset.MaxValue),
                 (offset, timeOffset) => (begin: offset, next: timeOffset))
             .Where(file => file.next > start && end >= file.begin);
         //var timesToRequest = index.Where(time => time >= start && time <= end).ToList();
@@ -104,8 +113,9 @@ public class SmardClient
         var tasks = timesToRequest.Select(time => GetSeries(filter, resolution, time.begin));
         var results = await Task.WhenAll(tasks);
 
-        return results.Aggregate((series, series1) => series.Merge(series1, UnionBehavior.PreferLeft))
-            .Where(pair => pair.Key >= start && pair.Key < end);
+        return results.Aggregate((series, series1) => series.Concat(series1))
+            .Where(pair => pair.Key >= start && pair.Key < end).OrderBy(pair => pair.Key)
+            .ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 
 
@@ -117,7 +127,7 @@ public class SmardClient
     /// <param name="start"></param>
     /// <param name="end"></param>
     /// <returns>Returns a dictionary with the EnergySource as key and Dictionaries containing time and value as value in MWh</returns>
-    public async Task<Dictionary<EnergySourceId, Series<DateTimeOffset, double?>>> GetProductions(
+    public async Task<Dictionary<EnergySourceId, Dictionary<DateTimeOffset, double?>>> GetProductions(
         EnergySourceId sources,
         DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
@@ -131,13 +141,15 @@ public class SmardClient
                 t => t.EnergySource, // Key (EnergySource)
                 t => t.Task.Result); // Value (List of SeriesItems)
     }
-    
-    public async Task<Series<DateTimeOffset, double?>> GetProduction(EnergySourceId source, DataResolution resolution, DateTimeOffset start, DateTimeOffset end)
+
+    public async Task<Dictionary<DateTimeOffset, double?>> GetProduction(EnergySourceId source,
+        DataResolution resolution, DateTimeOffset start, DateTimeOffset end)
     {
         return await GetSeriesRange(source.GetProductionId(), resolution, start, end);
     }
 
-    public async Task<Series<DateTimeOffset, double?>> GetConsumption(DataResolution inputResolution, DateTimeOffset start, DateTimeOffset end)
+    public async Task<Dictionary<DateTimeOffset, double?>> GetConsumption(DataResolution inputResolution,
+        DateTimeOffset start, DateTimeOffset end)
     {
         return await GetSeriesRange(410, inputResolution, start, end);
     }
