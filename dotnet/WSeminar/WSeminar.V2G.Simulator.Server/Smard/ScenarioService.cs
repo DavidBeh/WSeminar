@@ -1,10 +1,4 @@
-﻿using System.Collections;
-using System.Runtime.CompilerServices;
-using ApexCharts;
-using Deedle;
-using DateTimeOffset = System.DateTimeOffset;
-
-namespace WSeminar.V2G.Simulator.Server.Smard;
+﻿namespace WSeminar.V2G.Simulator.Server.Smard;
 
 public record ScenarioInput
 {
@@ -120,7 +114,7 @@ public class ScenarioService
             double solar = solarProd.Get0(key);
             double solarDisplay = solar - Math.Max(0, otherSum + offShore + onShore + solar - c);
             double total = otherSum + offShore + onShore + solar;
-
+            
             // Difference between production and consumption. Positive => charge, negative => discharge
             double overproduction = total - c;
             // How much we could store if we could charge at unlimited power (MWh)
@@ -164,7 +158,7 @@ public class ScenarioService
         return result;
     }
 }
-
+/*
 public static class ScenarioHelpers
 {
     public static void AddDisplay(this Frame<DateTimeOffset, CalculationColumn> fra,
@@ -192,7 +186,7 @@ public static class ScenarioHelpers
         return max;
     }
 }
-
+*/
 
 /*
 public class TimeSeries : ICollection<SeriesItem>

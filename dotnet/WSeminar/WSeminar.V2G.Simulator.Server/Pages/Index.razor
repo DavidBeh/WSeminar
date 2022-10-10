@@ -61,7 +61,6 @@ Welcome to your new app.
     *@
     <ApexChart @ref="_chartRef" TItem="ScenarioRow" Options="_chartOptions">
 
-
         <ApexPointSeries
             TItem="ScenarioRow"
             Items="_scenarioResult.Rows"
@@ -111,7 +110,7 @@ Welcome to your new app.
         </ApexPointSeries>
 
         <ApexPointSeries
-                
+
             TItem="ScenarioRow"
             Color="@Color.Yellow.ToHex()"
             Items="_scenarioResult.Rows"
@@ -123,7 +122,7 @@ Welcome to your new app.
 
         <ApexPointSeries
             TItem="ScenarioRow"
-            Color="@Color.Gray.ToHex()"
+            Color="@Color.Red.ToHex()"
             Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
             Name="Residuallast"
@@ -163,6 +162,16 @@ Welcome to your new app.
 
         _chartOptions = new ApexChartOptions<ScenarioRow>()
         {
+            Fill = new Fill()
+            {
+                Type = Enumerable.Repeat(FillType.Solid, 6).Append(FillType.Pattern).ToList(),
+                Pattern = new FillPattern()
+                {
+                    Style = FillPatternStyle.VerticalLines,
+                },
+                Opacity = Enumerable.Repeat(1d, 7).ToList(),
+                
+            },
             Xaxis = new XAxis()
             {
                 Min = StartDate.AddHours(-1).ToUnixTimeMilliseconds(),
@@ -175,6 +184,10 @@ Welcome to your new app.
             },
             Chart = new Chart
             {
+                DropShadow = new DropShadow()
+                {
+                    Enabled =  false
+                },
                 Stacked = true,
             },
             Tooltip = new Tooltip()
