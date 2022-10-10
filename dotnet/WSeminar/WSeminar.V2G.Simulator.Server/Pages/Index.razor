@@ -1,7 +1,9 @@
 ﻿@page "/"
 @using System.Diagnostics
+@using System.Drawing
 @using Deedle
 @using WSeminar.V2G.Simulator.Server.Smard
+@using Color = System.Drawing.Color
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Nav
 @inject SmardClient Client
@@ -45,34 +47,7 @@ Welcome to your new app.
 
 @if (_scenarioResult != null)
 {
-    var options = new ApexChartOptions<ScenarioRow>()
-    {
-        Xaxis = new XAxis()
-        {
-            Min = StartDate.AddHours(-1).ToUnixTimeMilliseconds(),
-            Max = EndDate.AddHours(1).ToUnixTimeMilliseconds(),
-            Labels = new XAxisLabels()
-            {
-                DatetimeUTC = false,
-            },
-            Type = XAxisType.Datetime
-        },
-        Chart = new Chart
-        {
-            Stacked = true,
-        },
-    };
-
-    options.Tooltip = new Tooltip()
-    {
-        Enabled = true,
-        X = new TooltipX()
-        {
-            Format = "dd.MM\u3000HH:mm"
-        }
-    };
-
-    @*
+@*
     var l = _lastProductionData
         .SelectMany(pair =>
             pair.Value.Select(item => (EnergySource: pair.Key, SeriesItem: item)));
@@ -84,7 +59,7 @@ Welcome to your new app.
                 tuples.Aggregate(0m, (i, tuple) => i + (tuple.SeriesItem.Value ?? 0)),
                 tuples.First().SeriesItem.Resolution));
     *@
-    <ApexChart @ref="_chartRef" TItem="ScenarioRow" Options="options">
+    <ApexChart @ref="_chartRef" TItem="ScenarioRow" Options="_chartOptions">
 
 
         <ApexPointSeries
@@ -95,37 +70,29 @@ Welcome to your new app.
             XValue="pair => pair.Time"
             YValue="pair => (decimal?)pair.Consumption">
         </ApexPointSeries>
-        
-        <ApexPointSeries
-            TItem="ScenarioRow"
-            Items="_scenarioResult.Rows"
-            SeriesType="SeriesType.Area"
-            Name="Solar (verbraucht)"
-            XValue="pair => pair.Time"
-            YValue="pair => (decimal?)pair.DisplaySolar">
-        </ApexPointSeries>
-        
-        <ApexPointSeries
-            TItem="ScenarioRow"
-            Items="_scenarioResult.Rows"
-            SeriesType="SeriesType.Area"
-            Name="Residuallast"
-            XValue="pair => pair.Time"
-            YValue="pair => (decimal?)-Math.Min(pair.UnusedProduction, 0)">
-        </ApexPointSeries>
-
 
         <ApexPointSeries
             TItem="ScenarioRow"
             Items="_scenarioResult.Rows"
-            SeriesType="SeriesType.Area"
-            Name="Wind Offshore (verbraucht)"
+            SeriesType="SeriesType.Line"
+            Name="Batterie"
             XValue="pair => pair.Time"
-            YValue="pair => (decimal?)pair.DisplayOffShore">
+            YValue="pair => (decimal?)pair.BatteryCapacityDelta">
         </ApexPointSeries>
 
         <ApexPointSeries
             TItem="ScenarioRow"
+            Color="@Color.LightSeaGreen.ToHex()"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Andere Erneuerbare (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplayOtherRenewable">
+        </ApexPointSeries>
+
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Color="@Color.DeepSkyBlue.ToHex()"
             Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
             Name="Wind Onshore (verbraucht)"
@@ -135,11 +102,33 @@ Welcome to your new app.
 
         <ApexPointSeries
             TItem="ScenarioRow"
+            Color="@Color.SkyBlue.ToHex()"
             Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
-            Name="Andere Erneuerbare (verbraucht)"
+            Name="Wind Offshore (verbraucht)"
             XValue="pair => pair.Time"
-            YValue="pair => (decimal?)pair.DisplayOtherRenewable">
+            YValue="pair => (decimal?)pair.DisplayOffShore">
+        </ApexPointSeries>
+
+        <ApexPointSeries
+                
+            TItem="ScenarioRow"
+            Color="@Color.Yellow.ToHex()"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Solar (verbraucht)"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)pair.DisplaySolar">
+        </ApexPointSeries>
+
+        <ApexPointSeries
+            TItem="ScenarioRow"
+            Color="@Color.Gray.ToHex()"
+            Items="_scenarioResult.Rows"
+            SeriesType="SeriesType.Area"
+            Name="Residuallast"
+            XValue="pair => pair.Time"
+            YValue="pair => (decimal?)-Math.Min(pair.UnusedProduction, 0)">
         </ApexPointSeries>
 
 
@@ -161,6 +150,7 @@ Welcome to your new app.
     public string? TestValue { get; set; }
 
     private ApexChart<ScenarioRow>? _chartRef;
+    private ApexChartOptions<ScenarioRow> _chartOptions = null!;
 
     private ScenarioResult? _scenarioResult;
 
@@ -170,6 +160,33 @@ Welcome to your new app.
     {
         SetYesterday();
         SetOneWeek();
+
+        _chartOptions = new ApexChartOptions<ScenarioRow>()
+        {
+            Xaxis = new XAxis()
+            {
+                Min = StartDate.AddHours(-1).ToUnixTimeMilliseconds(),
+                Max = EndDate.AddHours(1).ToUnixTimeMilliseconds(),
+                Labels = new XAxisLabels()
+                {
+                    DatetimeUTC = false,
+                },
+                Type = XAxisType.Datetime
+            },
+            Chart = new Chart
+            {
+                Stacked = true,
+            },
+            Tooltip = new Tooltip()
+            {
+                Enabled = true,
+                X = new TooltipX()
+                {
+                    Format = "dd.MM\u3000HH:mm"
+                },
+                InverseOrder = true
+            },
+        };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

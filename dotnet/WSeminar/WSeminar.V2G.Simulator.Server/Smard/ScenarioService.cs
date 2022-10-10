@@ -113,10 +113,10 @@ public class ScenarioService
             double otherSum = otherRenewableProd.Get0(key) + pumpedProd.Get0(key) + waterProd.Get0(key);
             double c = consumption.Get0(key);
             double otherDisplay = otherSum - Math.Max(0, otherSum - c);
-            double offShore = offShoreProd.Get0(key);
-            double offShoreDisplay = offShore - Math.Max(0, otherSum + offShore - c);
             double onShore = onShoreProd.Get0(key);
-            double onShoreDisplay = onShore - Math.Max(0, otherSum + offShore + onShore - c);
+            double onShoreDisplay = onShore - Math.Max(0, otherSum + onShore - c);
+            double offShore = offShoreProd.Get0(key);
+            double offShoreDisplay = offShore - Math.Max(0, otherSum + onShore + offShore - c);
             double solar = solarProd.Get0(key);
             double solarDisplay = solar - Math.Max(0, otherSum + offShore + onShore + solar - c);
             double total = otherSum + offShore + onShore + solar;

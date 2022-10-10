@@ -1,6 +1,15 @@
-﻿using Deedle;
+﻿using System.Drawing;
+using Deedle;
 
 namespace WSeminar.V2G.Simulator.Server;
+
+static class ApexChartExtensions
+{
+    internal static string ToHex(this Color color)
+    {
+        return ColorTranslator.ToHtml(Color.FromArgb(color.ToArgb()));
+    }
+}
 
 public class BoxPair
 {
