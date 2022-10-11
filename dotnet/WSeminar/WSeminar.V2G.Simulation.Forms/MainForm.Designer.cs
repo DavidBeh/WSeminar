@@ -32,6 +32,7 @@ partial class MainForm
             this.date_Start = new System.Windows.Forms.DateTimePicker();
             this.date_End = new System.Windows.Forms.DateTimePicker();
             this.num_Days = new System.Windows.Forms.NumericUpDown();
+            this.cartesianChart1 = new LiveChartsCore.SkiaSharpView.WinForms.CartesianChart();
             ((System.ComponentModel.ISupportInitialize)(this.num_Days)).BeginInit();
             this.SuspendLayout();
             // 
@@ -44,7 +45,7 @@ partial class MainForm
             // 
             // date_End
             // 
-            this.date_End.Location = new System.Drawing.Point(265, 12);
+            this.date_End.Location = new System.Drawing.Point(287, 12);
             this.date_End.Name = "date_End";
             this.date_End.Size = new System.Drawing.Size(200, 23);
             this.date_End.TabIndex = 1;
@@ -53,14 +54,22 @@ partial class MainForm
             // 
             this.num_Days.Location = new System.Drawing.Point(218, 12);
             this.num_Days.Name = "num_Days";
-            this.num_Days.Size = new System.Drawing.Size(41, 23);
+            this.num_Days.Size = new System.Drawing.Size(63, 23);
             this.num_Days.TabIndex = 2;
+            // 
+            // cartesianChart1
+            // 
+            this.cartesianChart1.Location = new System.Drawing.Point(12, 41);
+            this.cartesianChart1.Name = "cartesianChart1";
+            this.cartesianChart1.Size = new System.Drawing.Size(446, 305);
+            this.cartesianChart1.TabIndex = 3;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.cartesianChart1);
             this.Controls.Add(this.num_Days);
             this.Controls.Add(this.date_End);
             this.Controls.Add(this.date_Start);
@@ -76,4 +85,5 @@ partial class MainForm
     private DateTimePicker date_Start;
     private DateTimePicker date_End;
     private NumericUpDown num_Days;
+    private LiveChartsCore.SkiaSharpView.WinForms.CartesianChart cartesianChart1;
 }
