@@ -6,14 +6,14 @@ public record ScenarioInput
     public DateTimeOffset End;
     public DataResolution Resolution;
 
-    public double BatteryCapacity;
-    public double BatteryCount;
-    public double MaxAllowedDrainFactor;
+    public double BatteryCapacity = 0;
+    public double BatteryCount = 0;
+    public double MaxAllowedDrainFactor = 0;
     public double TotalMaxPower => MaxAllowedDrainFactor * TotalMaxCapacity;
     public double TotalMaxCapacity => BatteryCount * BatteryCapacity;
     
-    public double SolarFactor;
-    public double WindFactor;
+    public double SolarFactor = 1;
+    public double WindFactor = 1;
 
     public ScenarioInput Copy()
     {

@@ -6,11 +6,11 @@ public record ScenarioInput
     public DateTimeOffset End;
     public DataResolution Resolution;
 
-    public double BatteryCapacity;
-    public double BatteryCount;
+    public double BatteryCapacity_kWh;
+    public double BatteryCount_Millionen;
     public double MaxAllowedDrainFactor;
-    public double TotalMaxPower => MaxAllowedDrainFactor * TotalMaxCapacity;
-    public double TotalMaxCapacity => BatteryCount * BatteryCapacity;
+    public double TotalMaxPower => MaxAllowedDrainFactor * TotalMaxCapacity_MWh;
+    public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10, 6) * (BatteryCapacity_kWh / 1000);
     
     public double SolarFactor;
     public double WindFactor;
@@ -107,11 +107,11 @@ public class ScenarioService
             double otherSum = otherRenewableProd.Get0(key) + pumpedProd.Get0(key) + waterProd.Get0(key);
             double c = consumption.Get0(key);
             double otherDisplay = otherSum - Math.Max(0, otherSum - c);
-            double onShore = onShoreProd.Get0(key);
+            double onShore = onShoreProd.Get0(key) * input.WindFactor;
             double onShoreDisplay = onShore - Math.Max(0, otherSum + onShore - c);
-            double offShore = offShoreProd.Get0(key);
+            double offShore = offShoreProd.Get0(key) * input.WindFactor;
             double offShoreDisplay = offShore - Math.Max(0, otherSum + onShore + offShore - c);
-            double solar = solarProd.Get0(key);
+            double solar = solarProd.Get0(key) * input.SolarFactor;
             double solarDisplay = solar - Math.Max(0, otherSum + offShore + onShore + solar - c);
             double total = otherSum + offShore + onShore + solar;
             
@@ -119,7 +119,7 @@ public class ScenarioService
             double overproduction = total - c;
             // How much we could store if we could charge at unlimited power (MWh)
             double unlimitedCapacityDelta =
-                Math.Clamp(overproduction + currentCapacity, 0, input.TotalMaxCapacity) - currentCapacity;
+                Math.Clamp(overproduction + currentCapacity, 0, input.TotalMaxCapacity_MWh) - currentCapacity;
             // Converted to Power (Watt)
             double unlimitedPower = unlimitedCapacityDelta / input.Resolution.ToTimeSpan().TotalHours;
             // Power Limited by maxPower

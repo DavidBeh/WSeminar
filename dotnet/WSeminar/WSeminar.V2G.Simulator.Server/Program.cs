@@ -1,5 +1,6 @@
 global using Opt =  Deedle.OptionalValue;
 global using OptD =  Deedle.OptionalValue;
+using System.Drawing;
 using CacheTower.Providers.FileSystem;
 using CacheTower.Serializers.SystemTextJson;
 using WSeminar.V2G.Simulator.Server.Data;
@@ -12,6 +13,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<ScenarioService>();
+
 
 
 builder.Services.AddHttpClient<SmardClient>();
