@@ -94,22 +94,32 @@ Welcome to your new app.
             YValue="pair => (decimal?)pair.DisplayOffShore">
         </ApexPointSeries>
 
-        <ApexPointSeries
+	    <ApexPointSeries
 
-            TItem="ScenarioRow"
-            Color="@Color.Yellow.ToHex()"
-            Stroke="@Color.Yellow.ToHexStroke()"
-            Items="_scenarioResult.Rows"
-            SeriesType="SeriesType.Area"
-            Name="Solar (verbraucht)"
-            XValue="pair => pair.Time"
-            YValue="pair => (decimal?)pair.DisplaySolar">
-        </ApexPointSeries>
+		    TItem="ScenarioRow"
+		    Color="@Color.Yellow.ToHex()"
+		    Stroke="@Color.Yellow.ToHexStroke()"
+		    Items="_scenarioResult.Rows"
+		    SeriesType="SeriesType.Area"
+		    Name="Solar (verbraucht)"
+		    XValue="pair => pair.Time"
+		    YValue="pair => (decimal?)pair.DisplaySolar">
+	    </ApexPointSeries>
+        
+	    <ApexPointSeries
+		    TItem="ScenarioRow"
+		    Color="@Color.Green.ToHex()"
+		    Stroke="@Color.Green.ToHexStroke()"
+		    Items="_scenarioResult.Rows"
+            Name="Batterien Entladen"
+		    XValue="row => row.Time"
+		    YValue="row => (decimal?) -Math.Min(row.BatteryCapacityDelta, 0) ">
+	    </ApexPointSeries>
 
-        <ApexPointSeries
+	    <ApexPointSeries
             TItem="ScenarioRow"
-            Color="@Color.Red.ToHex()"
-            Stroke="@Color.Red.ToHexStroke()"
+            Color="@Color.DimGray.ToHex()"
+            Stroke="@Color.DimGray.ToHexStroke()"
             Items="_scenarioResult.Rows"
             SeriesType="SeriesType.Area"
             Name="Residuallast"
@@ -117,14 +127,31 @@ Welcome to your new app.
             YValue="pair => (decimal?)-Math.Min(pair.UnusedProduction, 0)">
         </ApexPointSeries>
         
-        <ApexPointSeries
-            TItem="ScenarioRow"
-            Color="@Color.Green.ToHex()"
-            Items="_scenarioResult.Rows"
-            Stroke="@Color.Green.ToHexStroke()"
-            XValue="row => row.Time"
-            YValue="row => (decimal?) Math.Max(row.BatteryCapacityDelta, 0) ">
-        </ApexPointSeries>
+	    <ApexPointSeries
+		    TItem="ScenarioRow"
+		    Color="@Color.DarkGreen.ToHex()"
+		    Stroke="@Color.DarkGreen.ToHexStroke()"
+		    Items="_scenarioResult.Rows"
+		    SeriesType="SeriesType.Area"
+		    Name="Batterien Laden"
+		    XValue="pair => pair.Time"
+		    YValue="pair => (decimal?) Math.Max(pair.BatteryCapacityDelta, 0)">
+	    </ApexPointSeries>
+        
+	    <ApexPointSeries
+		    TItem="ScenarioRow"
+		    Color="@Color.Red.ToHex()"
+		    Stroke="@Color.Red.ToHexStroke()"
+		    Items="_scenarioResult.Rows"
+		    SeriesType="SeriesType.Area"
+		    Name="Überproduktion"
+		    XValue="pair => pair.Time"
+		    YValue="pair => (decimal?) Math.Max(pair.UnusedProduction, 0)">
+	    </ApexPointSeries>
+
+
+        
+
 
     </ApexChart>
 }
@@ -159,12 +186,12 @@ Welcome to your new app.
         {
             Fill = new Fill()
             {
-                Type = Enumerable.Repeat(FillType.Solid, 6).Append(FillType.Pattern).ToList(),
+                Type = Enumerable.Repeat(FillType.Solid, 8).ToList(),
                 Pattern = new FillPattern()
                 {
                     Style = FillPatternStyle.VerticalLines,
                 },
-                Opacity = Enumerable.Repeat(1d,7).ToList(),
+                Opacity = Enumerable.Repeat(1d,8).ToList(),
             },
             Xaxis = new XAxis()
             {
@@ -230,11 +257,11 @@ Welcome to your new app.
             Start = StartDate,
             End = EndDate,
             Resolution = DataResolution.Hour,
-            BatteryCount_Millionen = 50,
-            BatteryCapacity_kWh = 50,
-            MaxAllowedDrainFactor = 99,
+            BatteryCount_Millionen = 30,
+            BatteryCapacity_kWh = 40,
+            MaxAllowedDrainFactor = 0.05d,
             SolarFactor = 3,
-            WindFactor = 1,
+            WindFactor = 2,
         };
 
         var result = await ScenarioService.Calculate(scenario);
