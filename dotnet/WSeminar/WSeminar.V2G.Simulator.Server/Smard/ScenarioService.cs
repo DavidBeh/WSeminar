@@ -1,4 +1,6 @@
-﻿namespace WSeminar.V2G.Simulator.Server.Smard;
+﻿using System.Diagnostics;
+
+namespace WSeminar.V2G.Simulator.Server.Smard;
 
 public record ScenarioInput
 {
@@ -10,7 +12,7 @@ public record ScenarioInput
     public double BatteryCount_Millionen;
     public double MaxAllowedDrainFactor;
     public double TotalMaxPower => MaxAllowedDrainFactor * TotalMaxCapacity_MWh;
-    public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10, 6) * (BatteryCapacity_kWh / 1000);
+    public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10d, 6d) * (BatteryCapacity_kWh / 1000d);
     
     public double SolarFactor;
     public double WindFactor;
@@ -27,7 +29,7 @@ public class ScenarioResult
     public List<ScenarioRow> Rows { get; init; }
     public ScenarioInput Input { get; init; }
 }
-
+/*
 public enum CalculationColumn
 {
     Production_Solar,
@@ -46,7 +48,7 @@ public enum CalculationColumn
 
     Overproduction,
     Display_Overproduction,
-}
+}*/
 
 public record ScenarioRow
 {
@@ -61,9 +63,21 @@ public record ScenarioRow
     public double DisplayOnShore { get; init; }
     public double DisplayOffShore { get; init; }
     public double DisplayOtherRenewable { get; init; }
+    /// <summary>
+    /// Derzeit gespeicherte Kapazität. Zwischen 0 und TotalMaxCapacity_MWh
+    /// </summary>
     public double CurrentCapacity { get; init; }
+    /// <summary>
+    /// Stromstärke in MWh. Zwischen -TotalMaxPower und +TotalMaxPower
+    /// </summary>
     public double CurrentPower { get; init; }
+    /// <summary>
+    /// Positiv: Unbenutzte Kapazität; Negativ: Residuallast
+    /// </summary>
     public double UnusedProduction { get; init; }
+    /// <summary>
+    /// Positiv: Batterien werden geladen; Negativ: Batterien werden entladen
+    /// </summary>
     public double BatteryCapacityDelta { get; init; }
 }
 
@@ -127,10 +141,10 @@ public class ScenarioService
             double limitedPower = Math.Clamp(unlimitedPower, -input.TotalMaxPower, input.TotalMaxPower);
             // Converted back to Capacity (MWh)
             double limitedCapacityDelta = limitedPower * input.Resolution.ToTimeSpan().TotalHours;
-            
             currentCapacity += limitedCapacityDelta;
             double unusedCapacity = overproduction - limitedCapacityDelta;
-            
+            Debug.WriteLine(input.TotalMaxPower + "|" + input.TotalMaxCapacity_MWh + "|" + limitedPower + "|" + unusedCapacity);
+
             rows.Add(new ScenarioRow()
             {
                 Consumption = c,

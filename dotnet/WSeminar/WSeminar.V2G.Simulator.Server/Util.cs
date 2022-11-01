@@ -19,7 +19,7 @@ static class ColorHelper
         return new SeriesStroke()
         {
             Color = color.Lerp(Color.Black,(float) darken).ToHex(),
-            Width = 4,
+            Width = 2,
         };
     }
 
