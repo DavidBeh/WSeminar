@@ -1,0 +1,22 @@
+﻿<h3>day</h3>
+
+
+<select @ref="Monat" name="Tag">
+    <option value="" @onchange="Callback"></option>
+</select>
+<table class="table">
+
+</table>
+@code {
+
+    private void Callback(ChangeEventArgs obj)
+    {
+        throw new NotImplementedException();
+        
+    }
+
+    public ElementReference Monat { get; set; }
+
+}
+
+

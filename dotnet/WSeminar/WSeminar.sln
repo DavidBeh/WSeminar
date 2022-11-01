@@ -1,16 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Forms", "WSeminar.V2G.Simulation.Forms\WSeminar.V2G.Simulation.Forms.csproj", "{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WSeminar.V2G.Simulation.Forms", "WSeminar.V2G.Simulation.Forms\WSeminar.V2G.Simulation.Forms.csproj", "{E3F5A7CA-0F7C-4B5C-A3F6-DF582E94CA68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulator.WASM", "WSeminar.V2G.Simulator.WASM\WSeminar.V2G.Simulator.WASM.csproj", "{8175B997-3864-4B2C-A330-96DC2FC8FBAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WSeminar.V2G.Simulator.WASM", "WSeminar.V2G.Simulator.WASM\WSeminar.V2G.Simulator.WASM.csproj", "{8175B997-3864-4B2C-A330-96DC2FC8FBAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{EF5DE657-8992-4CEF-85E8-51985A088C91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{EF5DE657-8992-4CEF-85E8-51985A088C91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulator.Server", "WSeminar.V2G.Simulator.Server\WSeminar.V2G.Simulator.Server.csproj", "{AC16B72E-651C-4DBC-8690-1572E5FE713D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WSeminar.V2G.Simulator.Server", "WSeminar.V2G.Simulator.Server\WSeminar.V2G.Simulator.Server.csproj", "{AC16B72E-651C-4DBC-8690-1572E5FE713D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Shared", "WSeminar.V2G.Simulation.Shared\WSeminar.V2G.Simulation.Shared.csproj", "{EB249FAF-4532-4D5B-906F-C30C00974ACE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WSeminar.V2G.Simulation.Shared", "WSeminar.V2G.Simulation.Shared\WSeminar.V2G.Simulation.Shared.csproj", "{EB249FAF-4532-4D5B-906F-C30C00974ACE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Console", "WSeminar.V2G.Simulation.Console\WSeminar.V2G.Simulation.Console.csproj", "{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WSeminar.V2G.Simulation.Console", "WSeminar.V2G.Simulation.Console\WSeminar.V2G.Simulation.Console.csproj", "{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WSeminar.V2G.Simulation.Forms2", "WSeminar.V2G.Simulation.Forms2\WSeminar.V2G.Simulation.Forms2.csproj", "{99563B3B-7405-4877-81D1-15A17845C4B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,5 +47,15 @@ Global
 		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A32C90B-FEF3-4D7C-AE4A-63E3CB7B2214}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99563B3B-7405-4877-81D1-15A17845C4B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99563B3B-7405-4877-81D1-15A17845C4B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99563B3B-7405-4877-81D1-15A17845C4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99563B3B-7405-4877-81D1-15A17845C4B9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C0C9348-B494-493C-9174-651137EC4443}
 	EndGlobalSection
 EndGlobal

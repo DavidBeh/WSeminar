@@ -21,6 +21,7 @@ public record ScenarioInput
     }
 }
 
+
 public class ScenarioResult
 {
     public List<ScenarioRow> Rows { get; init; }
