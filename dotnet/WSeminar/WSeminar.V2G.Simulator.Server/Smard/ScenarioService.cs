@@ -6,16 +6,32 @@ public record ScenarioInput
 {
     public DateTimeOffset Start;
     public DateTimeOffset End;
-    public DataResolution Resolution;
+    public DataResolution Resolution = DataResolution.Hour;
 
-    public double BatteryCapacity_kWh;
-    public double BatteryCount_Millionen;
-    public double MaxAllowedDrainFactor;
-    public double TotalMaxPower => MaxAllowedDrainFactor * TotalMaxCapacity_MWh;
+    /// <summary>
+    /// Freigegebene Kapazität pro V2G in kWh
+    /// </summary>
+    public double BatteryCapacity_kWh = 40;
+    /// <summary>
+    /// Anzahl der V2G Fahrzeuge
+    /// </summary>
+    public double BatteryCount_Millionen = 40 ;
+    public double BatteryCount => BatteryCount_Millionen * Math.Pow(10,6d);
+    /// <summary>
+    /// Lade- und Entladeleistung in kWh
+    /// </summary>
+    public double MaxBatteryPower = 3;
+
+    public double TotalMaxPower => (MaxBatteryPower * BatteryCount_Millionen * Math.Pow(10d, 6d)) / 1000d;
     public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10d, 6d) * (BatteryCapacity_kWh / 1000d);
-    
-    public double SolarFactor;
-    public double WindFactor;
+
+    /// <summary>
+    /// Jahresverbrauch neuer der Wärmepumpen in TWh
+    /// </summary>
+    public double ElektrischeHeizung = 142;
+
+    public double SolarFactor = 1;
+    public double WindFactor = 1;
 
     public ScenarioInput Copy()
     {
@@ -85,6 +101,17 @@ public class ScenarioService
 {
     private readonly SmardClient _client;
 
+    internal static readonly double[] HeizFaktorProMonat;
+
+    static ScenarioService()
+    {
+        var gradTagsZ = new double[]
+            { 170, 150, 130, 80, 40, 13.33333333, 13.33333333, 13.33333333, 30, 80, 120, 160 };
+        HeizFaktorProMonat = gradTagsZ.Select(d => d / 1000d).ToArray();
+
+    }
+
+
 
     public ScenarioService(SmardClient client)
     {
@@ -93,7 +120,6 @@ public class ScenarioService
 
     public async Task<ScenarioResult> Calculate(ScenarioInput input)
     {
-
         
         var solarProd = 
             await _client.GetProduction(EnergySourceId.Solar, input.Resolution, input.Start, input.End);
@@ -117,17 +143,33 @@ public class ScenarioService
         
         var currentCapacity = 0d;
         var rows = new List<ScenarioRow>();
+        
         foreach (var key in keys)
         {
+
             double otherSum = otherRenewableProd.Get0(key) + pumpedProd.Get0(key) + waterProd.Get0(key);
-            double c = consumption.Get0(key);
-            double otherDisplay = otherSum - Math.Max(0, otherSum - c);
-            double onShore = onShoreProd.Get0(key) * input.WindFactor;
-            double onShoreDisplay = onShore - Math.Max(0, otherSum + onShore - c);
+            var heiz = HeizFaktorProMonat[key.Month - 1] * input.ElektrischeHeizung * 1000000 * (input.Resolution.ToTimeSpan().TotalDays / 30d);
+            var eauto = (2.55d / 1000d) * input.Resolution.ToTimeSpan().TotalDays * input.BatteryCount;
+            //Console.WriteLine(heiz + "|" + consumption.Get0(key));
+            double c = consumption.Get0(key) + heiz + eauto; // 200
+            double stapel = 0;
+            double BerechneDisplay(double d)
+            {
+                var dp = Math.Min(Math.Max(0, c - stapel), d);
+                stapel += d;
+                return dp;
+            }
+
+            // other sum : 500
+            double otherDisplay = BerechneDisplay(otherSum);
+            
+            double onShore = onShoreProd.Get0(key) * input.WindFactor; // 400
+
+            double onShoreDisplay = BerechneDisplay(onShore);
             double offShore = offShoreProd.Get0(key) * input.WindFactor;
-            double offShoreDisplay = offShore - Math.Max(0, otherSum + onShore + offShore - c);
+            double offShoreDisplay = BerechneDisplay(offShore);
             double solar = solarProd.Get0(key) * input.SolarFactor;
-            double solarDisplay = solar - Math.Max(0, otherSum + offShore + onShore + solar - c);
+            double solarDisplay = BerechneDisplay(solar);
             double total = otherSum + offShore + onShore + solar;
             
             // Difference between production and consumption. Positive => charge, negative => discharge
@@ -143,7 +185,7 @@ public class ScenarioService
             double limitedCapacityDelta = limitedPower * input.Resolution.ToTimeSpan().TotalHours;
             currentCapacity += limitedCapacityDelta;
             double unusedCapacity = overproduction - limitedCapacityDelta;
-            Debug.WriteLine(input.TotalMaxPower + "|" + input.TotalMaxCapacity_MWh + "|" + limitedPower + "|" + unusedCapacity);
+            //Debug.WriteLine(input.TotalMaxPower + "|" + input.TotalMaxCapacity_MWh + "|" + limitedPower + "|" + unusedCapacity);
 
             rows.Add(new ScenarioRow()
             {

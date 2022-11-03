@@ -90,7 +90,7 @@ public class SmardClient
     public async Task<Dictionary<DateTimeOffset, double?>> GetSeriesRange(int filter, DataResolution resolution,
         DateTimeOffset start, DateTimeOffset end)
     {
-        Console.WriteLine("FILTER: " + filter);
+        //Console.WriteLine("FILTER: " + filter);
         var index = await GetIndex(filter, resolution);
         //index.Add(DateTimeOffset.MaxValue);
         /*

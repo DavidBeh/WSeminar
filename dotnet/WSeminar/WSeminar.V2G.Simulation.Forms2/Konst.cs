@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WSeminar.V2G.Simulation.Forms2
+﻿namespace WSeminar.V2G.Simulation.Forms2
 {
     internal class Konst
     {

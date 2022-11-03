@@ -8,6 +8,12 @@ using WSeminar.V2G.Simulator.Server.Smard;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.WebHost.ConfigureKestrel(options =>
+{ 
+    options.ListenLocalhost(5000);
+    //options.ListenLocalhost(5000);
+});
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
