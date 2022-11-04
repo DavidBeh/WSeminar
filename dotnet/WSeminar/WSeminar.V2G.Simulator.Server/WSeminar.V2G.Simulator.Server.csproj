@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Blazor-ApexCharts" Version="0.9.13-beta" />
+      <PackageReference Include="Blazor-ApexCharts" Version="0.9.15-beta" />
       <PackageReference Include="CacheTower" Version="0.13.0" />
       <PackageReference Include="CacheTower.Serializers.SystemTextJson" Version="0.13.0" />
       <PackageReference Include="Deedle" Version="2.5.0" />

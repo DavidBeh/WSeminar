@@ -11,7 +11,7 @@ public record ScenarioInput
     /// <summary>
     /// Freigegebene Kapazität pro V2G in kWh
     /// </summary>
-    public double BatteryCapacity_kWh = 40;
+    public double BatteryCapacity_kWh = 36;
     /// <summary>
     /// Anzahl der V2G Fahrzeuge
     /// </summary>
@@ -24,11 +24,12 @@ public record ScenarioInput
 
     public double TotalMaxPower => (MaxBatteryPower * BatteryCount_Millionen * Math.Pow(10d, 6d)) / 1000d;
     public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10d, 6d) * (BatteryCapacity_kWh / 1000d);
+    public double ZusätzlicherVerbrauch = 159;
 
     /// <summary>
     /// Jahresverbrauch neuer der Wärmepumpen in TWh
     /// </summary>
-    public double ElektrischeHeizung = 142;
+    public double ElektrischeHeizung = 144;
 
     public double SolarFactor = 1;
     public double WindFactor = 1;
@@ -149,10 +150,12 @@ public class ScenarioService
 
             double otherSum = otherRenewableProd.Get0(key) + pumpedProd.Get0(key) + waterProd.Get0(key);
             var heiz = HeizFaktorProMonat[key.Month - 1] * input.ElektrischeHeizung * 1000000 * (input.Resolution.ToTimeSpan().TotalDays / 30d);
-            var eauto = (2.55d / 1000d) * input.Resolution.ToTimeSpan().TotalDays * input.BatteryCount;
+            var eauto = (2.55d / 1000d) * input.Resolution.ToTimeSpan().TotalDays * input.BatteryCount * 2;
+            var addcons = (input.ZusätzlicherVerbrauch * 1000000 / 365) * input.Resolution.ToTimeSpan().TotalDays;
             //Console.WriteLine(heiz + "|" + consumption.Get0(key));
-            double c = consumption.Get0(key) + heiz + eauto; // 200
+            double c = consumption.Get0(key) + heiz + eauto + addcons; // 200
             double stapel = 0;
+
             double BerechneDisplay(double d)
             {
                 var dp = Math.Min(Math.Max(0, c - stapel), d);

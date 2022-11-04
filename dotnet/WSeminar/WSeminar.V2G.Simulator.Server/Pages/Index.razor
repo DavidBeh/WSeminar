@@ -1,9 +1,9 @@
 ﻿@page "/"
 @using WSeminar.V2G.Simulator.Server.Smard
 @using Deedle
+@using System.Text.Json
 @using Color = System.Drawing.Color
 @using System.Diagnostics
-@using System.Text.Json
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Nav
 @inject SmardClient Client
@@ -47,6 +47,14 @@
         </div>
     </div>
 
+    <div class="col-auto">
+        <div class="input-group">
+            <span class="input-group-text">Zusätzlicher Jahresverbrauch</span>
+            <input type="number" step="1" @bind="_input.ZusätzlicherVerbrauch" class="form-control"/>
+            <span class="input-group-text">TWh</span>
+        </div>
+    </div>
+
 
     <div class="col-auto">
         <div class="input-group">
@@ -64,7 +72,7 @@
             <span class="input-group-text">kWh</span>
         </div>
     </div>
-    
+
     <div class="col-auto">
         <div class="input-group">
             <span class="input-group-text">Verfügbare Leistung pro V2G Fahrzeug</span>
@@ -98,7 +106,7 @@
 
 @if (_scenarioResult != null)
 {
-@*
+    @*
     var l = _lastProductionData
         .SelectMany(pair =>
             pair.Value.Select(item => (EnergySource: pair.Key, SeriesItem: item)));
@@ -110,12 +118,13 @@
                 tuples.Aggregate(0m, (i, tuple) => i + (tuple.SeriesItem.Value ?? 0)),
                 tuples.First().SeriesItem.Resolution));
     *@
-    <div class="container">
+    <div class="">
         <ApexChart @ref="_chartRef"
                    TItem="ScenarioRow"
                    Options="_chartOptions"
                    Height=@("450px")
-                   Width="@("100%")">
+                   Width="@("100%")"
+                   OnZoomed="OnZoomed">
 
             <ApexPointSeries TItem="ScenarioRow"
                              Color="@Color.LightSeaGreen.ToHex()"
@@ -198,45 +207,40 @@
         </ApexChart>
 
     </div>
-    <div class="container">
-        <ApexChart
-            @ref="_chartRef2"
-            TItem="ScenarioRow"
-            Options="_chartOptions2"
-            Height=@("180px")
-            Width="@("100%")">
+    <div class="">
+        <ApexChart @ref="_chartRef2"
+                   TItem="ScenarioRow"
+                   Options="_chartOptions2"
+                   Height=@("180px")>
 
 
-            <ApexPointSeries
-                TItem="ScenarioRow"
-                Color="@Color.Red.ToHex()"
-                Stroke="@Color.Red.ToHexStroke()"
-                Items="_scenarioResult.Rows"
-                SeriesType="SeriesType.Area"
-                Name="Aufgeladene Energie"
-                XValue="pair => pair.Time"
-                YValue="pair => (decimal)(pair.CurrentCapacity / 1000d)">
+            <ApexPointSeries TItem="ScenarioRow"
+                             Color="@Color.Red.ToHex()"
+                             Stroke="@Color.Red.ToHexStroke()"
+                             Items="_scenarioResult.Rows"
+                             SeriesType="SeriesType.Area"
+                             Name="Aufgeladene Energie"
+                             XValue="pair => pair.Time"
+                             YValue="pair => (decimal)(pair.CurrentCapacity / 1000d)">
             </ApexPointSeries>
 
         </ApexChart>
 
-        <ApexChart
-            @ref="_chartRef3"
-            TItem="ScenarioRow"
-            Options="_chartOptions3"
-            Height=@("180px")
-            Width="@("100%")">
+        <ApexChart @ref="_chartRef3"
+                   TItem="ScenarioRow"
+                   Options="_chartOptions3"
+                   Height=@("180px")
+                   Width="@("100%")">
 
 
-            <ApexPointSeries
-                TItem="ScenarioRow"
-                Color="@Color.Red.ToHex()"
-                Stroke="@Color.Red.ToHexStroke()"
-                Items="_scenarioResult.Rows"
-                SeriesType="SeriesType.Area"
-                Name="Leistung"
-                XValue="pair => pair.Time"
-                YValue="pair => (decimal)pair.CurrentPower">
+            <ApexPointSeries TItem="ScenarioRow"
+                             Color="@Color.Red.ToHex()"
+                             Stroke="@Color.Red.ToHexStroke()"
+                             Items="_scenarioResult.Rows"
+                             SeriesType="SeriesType.Area"
+                             Name="Leistung"
+                             XValue="pair => pair.Time"
+                             YValue="pair => (decimal)pair.CurrentPower">
             </ApexPointSeries>
 
         </ApexChart>
@@ -246,8 +250,26 @@
 @code
 {
 
-    public DateTimeOffset StartDate { get; set; }
-    private DateTimeOffset DisplayedEndDate { get; set; }
+    public DateTimeOffset StartDate
+    {
+        get => _input.Start;
+        set
+        {
+            _dateChanged = true;
+            _input.Start = value;
+        }
+    }
+
+    private DateTimeOffset DisplayedEndDate
+    {
+        get => _input.End.AddDays(-1);
+        set
+        {
+            _dateChanged = true;
+            _input.End = value.AddDays(1);
+        }
+    }
+
     [Parameter]
     [SupplyParameterFromQuery(Name = "input")]
     public string? InputParameter
@@ -255,14 +277,37 @@
         get => _inputParameter;
         set
         {
-
+            
             _inputParameter = value;
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (_settingParams || _input == null) return;
+
+            _dateChanged = true;
             if (string.IsNullOrEmpty(value))
                 SetDefaults();
+            else 
+                _input = JsonSerializer.Deserialize<ScenarioInput>(value)!;
+            
+
+
         }
     }
 
-    private string? _inputParameter = null;
+    private bool _settingParams;
+    private void SetInputParameterManual(string p)
+    {
+        try
+        {
+            _settingParams = true;
+            var u = Nav.GetUriWithQueryParameter("input", p);
+            Nav.NavigateTo(u);
+        }
+        finally
+        {
+            _settingParams = false;
+        }
+    }
+    private string? _inputParameter;
 
     public DateTimeOffset EndDate
     {
@@ -275,25 +320,33 @@
     public string? TestValue { get; set; }
 
     private ApexChart<ScenarioRow>? _chartRef;
-    private ApexChartOptions<ScenarioRow> _chartOptions = new();
+    private readonly ApexChartOptions<ScenarioRow> _chartOptions = new();
 
-    private ApexChartOptions<ScenarioRow> _chartOptions2 = new();
+    private readonly ApexChartOptions<ScenarioRow> _chartOptions2 = new();
 
     private ScenarioResult? _scenarioResult;
 
     private Dictionary<EnergySourceId, Series<DateTimeOffset, double?>> _lastProductionData;
 
+    private readonly ApexChartOptions<ScenarioRow> _chartOptions3 = new();
+    private ApexChart<ScenarioRow>? _chartRef2;
+    private ApexChart<ScenarioRow>? _chartRef3;
+    private JsonSerializerOptions _jsonSerializerOptions = null!;
+
+    private bool _dateChanged = true;
+
+    private ZoomOptions? _zoomOptions = null;
+
     protected override void OnInitialized()
     {
-        _jsonSerializerOptions = new JsonSerializerOptions()
+        _jsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = false,
             IncludeFields = true,
             IgnoreReadOnlyProperties = true
         };
 
-        SetYesterday();
-        SetOneWeek();
+
     //UpdateChartOptions();
 
 
@@ -303,22 +356,21 @@
         }
         else
         {
-            
             SetDefaults();
         }
     }
 
     private void SetDefaults()
     {
-        
         _input = new ScenarioInput
         {
-            Start = StartDate,
-            End = EndDate,
             Resolution = DataResolution.Hour,
             SolarFactor = 3,
-            WindFactor = 2,
+            WindFactor = 2
         };
+        
+        SetYesterday();
+        SetOneWeek();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -348,35 +400,38 @@
 
     private void UpdateChartOptions()
     {
-        YAxis CreateYAxis(string title, int w = 90) => new YAxis()
+        YAxis CreateYAxis(string title, int w = 90)
         {
-            Title = new AxisTitle()
+            return new YAxis()
             {
-                Text = title
-            },
-            DecimalsInFloat = 0,
-            Labels = new YAxisLabels()
-            {
-                MaxWidth = w,
-                MinWidth = w,
-            }, 
-            Tooltip = new AxisTooltip()
-            {
-                Enabled = true,
-            }
-        };
+                Title = new AxisTitle
+                {
+                    Text = title
+                },
+                DecimalsInFloat = 0,
+                Labels = new YAxisLabels
+                {
+                    MaxWidth = w,
+                    MinWidth = w
+                },
+                Tooltip = new AxisTooltip
+                {
+                    Enabled = true
+                }
+            };
+        }
 
 
-        var pad = new Padding() { Bottom = 0, Left = 0, Right = 0, Top = 0 };
+        var pad = new Padding { Bottom = 0, Left = 0, Right = 0, Top = 0 };
 
         _chartOptions.Fill = new Fill
         {
             Type = Enumerable.Repeat(FillType.Solid, 8).ToList(),
             Pattern = new FillPattern
             {
-                Style = FillPatternStyle.VerticalLines,
+                Style = FillPatternStyle.VerticalLines
             },
-            Opacity = Enumerable.Repeat(1d, 8).ToList(),
+            Opacity = Enumerable.Repeat(1d, 8).ToList()
         };
 
         _chartOptions.Chart = new Chart
@@ -386,7 +441,7 @@
                 Enabled = false
             },
             Stacked = true,
-            RedrawOnParentResize = true,
+            RedrawOnParentResize = true
         };
 
         _chartOptions.Tooltip = new Tooltip
@@ -394,57 +449,57 @@
             Enabled = true,
             X = new TooltipX
             {
-                
                 Format = "dd.MM\u3000HH:mm"
             },
             InverseOrder = true
         };
 
-        _chartOptions2.Chart.Toolbar = new Toolbar() { Show = false };
-        _chartOptions3.Chart.Toolbar = new Toolbar() { Show = false };
+        _chartOptions2.Chart.Toolbar = new Toolbar { Show = false };
+        _chartOptions3.Chart.Toolbar = new Toolbar { Show = false };
 
-        _chartOptions.Yaxis = new List<YAxis>()
+        _chartOptions.Yaxis = new List<YAxis>
         {
             CreateYAxis("MWh")
         };
 
-        _chartOptions2.Yaxis = new List<YAxis>()
+        _chartOptions2.Yaxis = new List<YAxis>
         {
-            CreateYAxis("GWh"),
+            CreateYAxis("GWh")
         };
 
-        _chartOptions3.Yaxis = new List<YAxis>()
+        _chartOptions3.Yaxis = new List<YAxis>
         {
             CreateYAxis("MWh")
         };
 
-        
 
-        var min = StartDate.AddHours(-1).ToUnixTimeMilliseconds();
-        var max = EndDate.AddHours(1).ToUnixTimeMilliseconds();
-        string group = "chart5";
+        var min = StartDate.AddHours(0).ToUnixTimeMilliseconds();
+        var max = EndDate.AddHours(0).ToUnixTimeMilliseconds();
+        var group = "chart5";
 
 
-        foreach (var apexChartOptions in new List<ApexChartOptions<ScenarioRow>>() { _chartOptions, _chartOptions2, _chartOptions3 })
+        foreach (var apexChartOptions in new List<ApexChartOptions<ScenarioRow>> { _chartOptions, _chartOptions2, _chartOptions3 })
         {
             apexChartOptions.Xaxis ??= new XAxis
             {
                 Labels = new XAxisLabels
                 {
-                    DatetimeUTC = false,
+                    DatetimeUTC = false
                 },
                 Type = XAxisType.Datetime,
-                Tooltip = new AxisTooltip()
+                Tooltip = new AxisTooltip
                 {
                     Enabled = false
                 }
             };
 
-            apexChartOptions.Chart.Animations = new Animations() { Enabled = (_input.End - _input.Start).TotalDays < 20 };
+            apexChartOptions.Chart.Animations = new Animations { Enabled = (_input.End - _input.Start).TotalDays < 20 };
 
             apexChartOptions.Xaxis.Min = min;
             apexChartOptions.Xaxis.Max = max;
+
             apexChartOptions.Chart.Group = group;
+            apexChartOptions.Chart.RedrawOnParentResize = true;
         }
 
 
@@ -457,11 +512,11 @@
         y2.Min = -_input.TotalMaxPower;
     }
 
+    private bool animatedBefore = true;
+
     private async Task Update()
     {
         var s = Stopwatch.StartNew();
-        _input.Start = StartDate;
-        _input.End = EndDate;
 
 
         var result = await ScenarioService.Calculate(_input);
@@ -476,33 +531,49 @@
     //await Task.Delay(1000);
 
 
-
         var ur = JsonSerializer.Serialize(_input, _jsonSerializerOptions);
 
-        var uri = Nav.GetUriWithQueryParameter("input", ur);
-        Nav.NavigateTo(uri);
+        SetInputParameterManual(ur);
 
         UpdateChartOptions();
+        //StateHasChanged();
+
         Logger.LogInformation("Fetched Entries ({Count})", result.Rows.Count);
         if (_chartRef != null)
         {
             Logger.LogInformation("Updating Series");
-            StateHasChanged();
     //await Task.Delay(3000);
 
             await Task.Delay(100);
     //await _chartRef.ResetSeriesAsync(true, true);
     //await _chartRef.UpdateSeriesAsync();
+            var zoom = _dateChanged ? null : _zoomOptions;
+            var animateNow = (_input.End - _input.Start).TotalDays < 20;
+            var animate = animateNow && animatedBefore && zoom == null;
+            animatedBefore = animateNow;
 
-            bool animate = (_input.End - _input.Start).TotalDays < 20;
+            try
+            {
+                Logger.LogInformation("Should Animate: {allow}", animate);
 
-            await _chartRef.UpdateOptionsAsync(false, animate, false);
-            await _chartRef2!.UpdateOptionsAsync(false, animate, false);
-            await _chartRef3!.UpdateOptionsAsync(false, animate, false);
+                var t3 = _chartRef.UpdateSeriesAsync(animate);
+                var t2 = _chartRef2.UpdateSeriesAsync(animate);
+                var t1 = _chartRef3.UpdateSeriesAsync(animate);
+                await Task.WhenAll(t3, t2, t1);
 
-            await _chartRef.UpdateSeriesAsync(animate);
-            await _chartRef2.UpdateSeriesAsync(animate);
-            await _chartRef3.UpdateSeriesAsync(animate);
+                await _chartRef.UpdateOptionsAsync(false, animate, false, zoom);
+                await _chartRef2!.UpdateOptionsAsync(false, animate, false, zoom);
+                await _chartRef3!.UpdateOptionsAsync(false, animate, false, zoom);
+
+            }
+            finally
+            {
+                _dateChanged = false;
+            }
+
+            Logger.LogInformation("Updating Zoom {v}", zoom);
+
+
 
     //await _chartRef.ResetSeriesAsync(false, true);
 
@@ -511,6 +582,7 @@
     //await _chartRef.UpdateOptionsAsync(true, false, true);
         }
     }
+
 
     private void SetOneWeek()
     {
@@ -522,8 +594,9 @@
         EndDate = DateTime.Today;
     }
 
-    private ApexChartOptions<ScenarioRow> _chartOptions3 = new();
-    private ApexChart<ScenarioRow>? _chartRef2;
-    private ApexChart<ScenarioRow>? _chartRef3;
-    private JsonSerializerOptions _jsonSerializerOptions= null!;
+    private void OnZoomed(ZoomedData<ScenarioRow> obj) => _zoomOptions = obj.IsZoomed ? new ZoomOptions()
+    {
+        End = (decimal)obj.XAxis.Max!,
+        Start = (decimal)obj.XAxis.Min!,
+    } : null;
 }
