@@ -22,7 +22,7 @@
         <div class="input-group">
             <label class="input-group-text">Start</label>
             <input @ref="StartPicker" class="form-control" type="date" @bind="StartDate"/>
-            <button title="Zeitraum auf eine Woche setzen" class="btn btn-outline-secondary" @onclick="SetOneWeek">
+            <button title="Zeitraum auf eine Woche setzen" class="btn btn-outline-secondary" @onclick="() => StartDate = OneWeek()">
                 <i class="bi bi-calendar2-week-fill"></i>
             </button>
         </div>
@@ -33,7 +33,7 @@
         <div class="input-group">
             <label class="input-group-text">Ende</label>
             <input class="form-control " type="date" @bind="DisplayedEndDate"/>
-            <button title="Auf Gestern setzen" class="btn btn-outline-secondary" @onclick="SetYesterday">
+            <button title="Auf Gestern setzen" class="btn btn-outline-secondary" @onclick="() => EndDate = Yesterday()">
                 <i class="bi bi-calendar2-day-fill"></i>
             </button>
         </div>
@@ -215,6 +215,7 @@
 
 
             <ApexPointSeries TItem="ScenarioRow"
+                             
                              Color="@Color.Red.ToHex()"
                              Stroke="@Color.Red.ToHexStroke()"
                              Items="_scenarioResult.Rows"
@@ -268,6 +269,7 @@
             _dateChanged = true;
             _input.End = value.AddDays(1);
         }
+        
     }
 
     [Parameter]
@@ -277,36 +279,37 @@
         get => _inputParameter;
         set
         {
-            
+            _zoomOptions = null;
+            Console.WriteLine($"Input Parameter {value}");
             _inputParameter = value;
-    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (_settingParams || _input == null) return;
 
-            _dateChanged = true;
+
             if (string.IsNullOrEmpty(value))
+            {
                 SetDefaults();
-            else 
-                _input = JsonSerializer.Deserialize<ScenarioInput>(value)!;
-            
+                _dateChanged = true;
+                _graphInput = _input!.Copy();
+                //StateHasChanged();
+                return;
+            }
+            //if (_input == null) return;
 
-
+            var newInput = JsonSerializer.Deserialize<ScenarioInput>(value, _jsonSerializerOptions)!;
+            _dateChanged = _graphInput == null || !_graphInput.CompareDates(newInput);
+            if (_dateChanged) _zoomOptions = null;
+            _input = newInput;
+            _graphInput = newInput.Copy();
         }
     }
 
-    private bool _settingParams;
+
     private void SetInputParameterManual(string p)
     {
-        try
-        {
-            _settingParams = true;
-            var u = Nav.GetUriWithQueryParameter("input", p);
-            Nav.NavigateTo(u);
-        }
-        finally
-        {
-            _settingParams = false;
-        }
+
+        var u = Nav.GetUriWithQueryParameter("input", p);
+        Nav.NavigateTo(u);
     }
+
     private string? _inputParameter;
 
     public DateTimeOffset EndDate
@@ -315,7 +318,9 @@
         set => DisplayedEndDate = value.AddDays(-1);
     }
 
-    private ScenarioInput _input = null!;
+    private ScenarioInput? _input = null;
+
+    private ScenarioInput? _graphInput;
 
     public string? TestValue { get; set; }
 
@@ -331,7 +336,13 @@
     private readonly ApexChartOptions<ScenarioRow> _chartOptions3 = new();
     private ApexChart<ScenarioRow>? _chartRef2;
     private ApexChart<ScenarioRow>? _chartRef3;
-    private JsonSerializerOptions _jsonSerializerOptions = null!;
+
+    private JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    {
+        WriteIndented = false,
+        IncludeFields = true,
+        IgnoreReadOnlyProperties = true
+    };
 
     private bool _dateChanged = true;
 
@@ -339,18 +350,12 @@
 
     protected override void OnInitialized()
     {
-        _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            IncludeFields = true,
-            IgnoreReadOnlyProperties = true
-        };
-
-
     //UpdateChartOptions();
 
+        Console.WriteLine("OnInitialized");
 
-        if (InputParameter != null)
+        /*
+                if (InputParameter != null)
         {
             _input = JsonSerializer.Deserialize<ScenarioInput>(InputParameter, _jsonSerializerOptions)!;
         }
@@ -358,6 +363,8 @@
         {
             SetDefaults();
         }
+         */
+
     }
 
     private void SetDefaults()
@@ -366,11 +373,11 @@
         {
             Resolution = DataResolution.Hour,
             SolarFactor = 3,
-            WindFactor = 2
+            WindFactor = 2,
+            End = Yesterday(),
+            
         };
-        
-        SetYesterday();
-        SetOneWeek();
+        _input.Start = _input.End.AddDays(-6);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -389,14 +396,6 @@
     public ElementReference StartPicker { get; set; }
 
     private TimeSpan _timeSpan { get; set; }
-
-    private async Task LoadIndex()
-    {
-        var s = Stopwatch.StartNew();
-
-        s.Stop();
-        _timeSpan = s.Elapsed;
-    }
 
     private void UpdateChartOptions()
     {
@@ -535,8 +534,10 @@
 
         SetInputParameterManual(ur);
 
+
+
         UpdateChartOptions();
-        //StateHasChanged();
+    //StateHasChanged();
 
         Logger.LogInformation("Fetched Entries ({Count})", result.Rows.Count);
         if (_chartRef != null)
@@ -552,8 +553,7 @@
             var animate = animateNow && animatedBefore && zoom == null;
             animatedBefore = animateNow;
 
-            try
-            {
+   
                 Logger.LogInformation("Should Animate: {allow}", animate);
 
                 var t3 = _chartRef.UpdateSeriesAsync(animate);
@@ -564,15 +564,8 @@
                 await _chartRef.UpdateOptionsAsync(false, animate, false, zoom);
                 await _chartRef2!.UpdateOptionsAsync(false, animate, false, zoom);
                 await _chartRef3!.UpdateOptionsAsync(false, animate, false, zoom);
-
-            }
-            finally
-            {
-                _dateChanged = false;
-            }
-
+            
             Logger.LogInformation("Updating Zoom {v}", zoom);
-
 
 
     //await _chartRef.ResetSeriesAsync(false, true);
@@ -584,19 +577,22 @@
     }
 
 
-    private void SetOneWeek()
+    private DateTimeOffset OneWeek()
     {
-        StartDate = EndDate.AddDays(-6);
+        return _input!.End.AddDays(-6);
+        StateHasChanged();
     }
 
-    private void SetYesterday()
+    private DateTimeOffset Yesterday()
     {
-        EndDate = DateTime.Today;
+        return DateTime.Today;
     }
 
-    private void OnZoomed(ZoomedData<ScenarioRow> obj) => _zoomOptions = obj.IsZoomed ? new ZoomOptions()
+#pragma warning disable CS0162
+    private void OnZoomed(ZoomedData<ScenarioRow> obj) => _zoomOptions = obj.IsZoomed && false ? new ZoomOptions()
     {
         End = (decimal)obj.XAxis.Max!,
         Start = (decimal)obj.XAxis.Min!,
     } : null;
+#pragma warning restore CS0162
 }

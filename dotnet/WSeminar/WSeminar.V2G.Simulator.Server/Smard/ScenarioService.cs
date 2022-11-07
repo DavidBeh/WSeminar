@@ -8,10 +8,15 @@ public record ScenarioInput
     public DateTimeOffset End;
     public DataResolution Resolution = DataResolution.Hour;
 
+    public bool CompareDates(ScenarioInput other)
+    {
+        return other.Resolution == Resolution && other.Start == Start && other.End == End;
+    }
+
     /// <summary>
     /// Freigegebene Kapazität pro V2G in kWh
     /// </summary>
-    public double BatteryCapacity_kWh = 36;
+    public double BatteryCapacity_kWh = 47;
     /// <summary>
     /// Anzahl der V2G Fahrzeuge
     /// </summary>
@@ -20,11 +25,11 @@ public record ScenarioInput
     /// <summary>
     /// Lade- und Entladeleistung in kWh
     /// </summary>
-    public double MaxBatteryPower = 3;
+    public double MaxBatteryPower = 5.9;
 
     public double TotalMaxPower => (MaxBatteryPower * BatteryCount_Millionen * Math.Pow(10d, 6d)) / 1000d;
     public double TotalMaxCapacity_MWh => BatteryCount_Millionen * Math.Pow(10d, 6d) * (BatteryCapacity_kWh / 1000d);
-    public double ZusätzlicherVerbrauch = 159;
+    public double ZusätzlicherVerbrauch = 323;
 
     /// <summary>
     /// Jahresverbrauch neuer der Wärmepumpen in TWh
@@ -150,7 +155,7 @@ public class ScenarioService
 
             double otherSum = otherRenewableProd.Get0(key) + pumpedProd.Get0(key) + waterProd.Get0(key);
             var heiz = HeizFaktorProMonat[key.Month - 1] * input.ElektrischeHeizung * 1000000 * (input.Resolution.ToTimeSpan().TotalDays / 30d);
-            var eauto = (2.55d / 1000d) * input.Resolution.ToTimeSpan().TotalDays * input.BatteryCount * 2;
+            var eauto = (2.55d / 1000d) * input.Resolution.ToTimeSpan().TotalDays * input.BatteryCount * 2 * 0; // Deaktiviert durch * 0
             var addcons = (input.ZusätzlicherVerbrauch * 1000000 / 365) * input.Resolution.ToTimeSpan().TotalDays;
             //Console.WriteLine(heiz + "|" + consumption.Get0(key));
             double c = consumption.Get0(key) + heiz + eauto + addcons; // 200
